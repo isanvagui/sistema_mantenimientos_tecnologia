@@ -1,0 +1,288 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="https://bootswatch.com/5/materia/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .cv-container {
+            display: flex;
+            max-width: 1000px;
+            margin: auto;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .left-column {
+            width: 35%;
+            background-color: #434242;
+            color: white;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .left-column img {
+            border-radius: 50%;
+            margin-bottom: 20px;
+            top: 130px;
+        }
+
+        .left-column h2 {
+            margin-bottom: 20px;
+        }
+
+        .left-column p {
+            text-align: center;
+        }
+
+        .contact-info,
+        .references {
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .contact-info li,
+        .references li {
+            /* padding: 10px; */
+            font-size: 20px;
+            list-style: none;
+            margin-bottom: 10px;
+        }
+
+        .contact-info li span,
+        .references li span {
+            margin-left: 10px;
+        }
+
+        .right-column {
+            width: 65%;
+            padding: 20px;
+            background-color: #fff;
+        }
+
+        .right-column h1,
+        .right-column h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section h2 {
+            border-bottom: 2px solid #333;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+        }
+
+        .section p,
+        .section ul {
+            margin: 0;
+            padding: 0;
+        }
+
+        .section ul li {
+            margin-bottom: 10px;
+        }
+
+        /* para los botones dentro de la tabla indexSalud */
+
+        .btn-hv {
+            background-color: rgba(20, 56, 64, 1);
+            /* Color de fondo */
+            color: white;
+            /* Color del texto, ajustable */
+            border: none;
+            /* Remover bordes si deseas */
+        }
+
+        .btn-hv:hover {
+            background-color: rgba(37, 202, 205, 1);
+            /* Color más claro para hover */
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="cv-container">
+        <div class="left-column">
+            
+            <img src="{{ url_for('static', filename=producto.imagen) }}" alt="Producto Imagen" width="210">
+            <!-- <h2>{{ producto.nombre_equipo }}</h2> -->
+            <!-- <p>{{ producto.descripcion }}</p> -->
+            <div class="contact-info">
+                <ul>
+                    
+                    <li><i class="fas fa-barcode"></i> <span>{{ producto.cod_articulo }}</span></li>
+                    <li><i class="fas fa-calendar"></i> <span>{{ producto.fecha_ingreso }}</span></li>
+                    <!--<li><i class="fas fa-calendar-check"></i> <span>{{ producto.4 }}</span></li>-->
+                    <li><i class="fas fa-calendar-plus"></i> <span>{{ producto.fecha_de_baja }}</span></li>
+                    <!--<li><i class="fas fa-calendar-alt"></i> <span>{{ producto.6 }}</span></li>-->
+                    <!-- <li><i class="fas fa-sync"></i> <span>{{ producto.periodicidad }}</span></li> -->
+                </ul>
+            </div>
+        </div>
+
+        <div class="right-column">
+            <div class="section">
+                <center>
+                    <h1>{{ producto.nombre_equipo}}</h1>
+                </center>
+                <h2>Detalles del Equipo</h2>
+                <li><b>Nombre de equipo: </b>{{ producto.nombre_equipo }}</li>
+                <li><b>Estado de equipo: </b>{{ producto.estado_equipo}}</li>
+                <li><b>Ubicación equipo: </b>{{ producto.ubicacion_original }}</li>
+                <li><b>Marca de equipo: </b>{{ producto.marca_equipo_tecnologia }}</li>
+                <li><b>Modelo de equipo: </b>{{ producto.modelo_equipo_tecnologia}}</li>
+                <li><b>Serial de equipo: </b>{{ producto.serial_equipo_tecnologia }}</li>
+                <li><b>Memoria Ram: </b>{{ producto.ram }}</li>
+                <li><b>Disco Duro: </b>{{ producto.disco }}</li>
+                <li><b>Software Instalado: </b>{{ producto.software_instalado}}</li>
+
+                <li><b>Responsable del equipo: </b>
+                    {% if producto.id_persona_responsable in personas %}
+                        {{ personas[producto.id_persona_responsable] }}
+                    {% else %}
+                        <span class="text-muted">Sin persona</span>
+                    {% endif %}
+                </li>
+                <!-- <p>{{ producto.descripcion }}</p> -->
+            </div>
+
+            <div class="section">
+                <h2>Información de Mantenimiento</h2>
+                <!-- <ul> -->
+                <li><b>Fecha Compra: </b>{{ producto.fecha_ingreso }}</li>
+                <li><b>Fecha de Baja: </b>{{ producto.fecha_de_baja }}</li>
+                
+                <br>
+                <li><b>Periodicidad Preventivo : </b>{{ producto.periodicidad }}</li>
+                <li><b>Mantenimiento Actual Preventivo: </b>{{ producto.fecha_mantenimiento}}</li>
+                <li><b>Próximo Mantenimiento Preventivo: </b>{{ producto.vencimiento_mantenimiento}}</li>
+                <br>
+                <li><b>Periodicidad Correctivo: </b>{{ producto.periodicidad_calibracion }}</li>
+                <li><b>Mantenimiento Actual Correctivo: </b>{{ producto.fecha_calibracion}}</li>
+                <li><b>Próximo Mantenimiento Correctivo: </b>{{ producto.vencimiento_calibracion }}</li>
+                <!--<li><b>Ubicación Original: </b>{{ producto.10 }}</li>-->
+                
+                <!-- </ul> -->
+            </div>
+
+            <div class="section">
+                <h2>Historial de mantenimiento</h2>
+                {%if historial %}
+                <td>
+                    <div class="btn-eliminar">
+                        <center><a href="{{url_for('HISTORIAL_MANTENIMIENTO_TECNOLOGIA', cod_articulo = cod_articulo) }}" class="btn btn-hv btn-lg">
+                                    <FONT SIZE=3>VER MANTENIMIENTOS</FONT>
+                                </a>
+                        </center>
+                    </div>
+                    {% else %}
+                    <li>No existe historial</li>
+                </td>
+                {% endif %}
+            </div>
+
+            <div class="section">
+
+                <form action="/actualizarTecnologia/{{ producto.id }}" method="POST">
+                    
+                     <!-- <div class="section">
+                        <h2>Especificaciones de instalación</h2>
+                        <div class="form-group">
+                            <label for="especificaciones_instalacion"></label>
+                            <textarea id="especificaciones_instalacion" name="especificaciones_instalacion"
+                                class="form-control">{{ producto.19 }}</textarea>
+                        </div>
+                    </div> -->
+
+                    <!--<div class="section">
+                        <h2>Cuidados básicos</h2>
+                        <div class="form-group">
+                            <label for="cuidados_basicos"></label>
+                            <textarea id="cuidados_basicos" name="cuidados_basicos"
+                                class="form-control">{{ producto.19 }}</textarea>
+                        </div>
+                    </div> -->
+                    
+                    <h2>Acciones</h2>
+                    <div class="form-group">
+                        <b><label for="cod_articulo">Codigo Articulo</label></b>
+                        <input type="text" id="cod_articulo" name="cod_articulo" value="{{ producto.cod_articulo }}"
+                            class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <b><label for="nombre_equipo">Nombre de equipo</label></b>
+                        <input type="text" id="nombre_equipo" name="nombre_equipo" value="{{ producto.nombre_equipo }}"
+                            class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <b><label for="ubicacion">Ubicación equipo</label></b>
+                        <input type="text" id="ubicacion" name="ubicacion" value="{{ producto.ubicacion_original }}"
+                            class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <b><label for="fecha_ingreso">Fecha Compra</label></b>
+                        <input type="date" id="fecha_ingreso" name="fecha_ingreso" value="{{ producto.fecha_ingreso }}"
+                            class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <b><label for="periodicidad">Periodicidad Preventivo</label></b>
+                        <input type="text" id="periodicidad" name="periodicidad" value="{{ producto.periodicidad }}"
+                            class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <b><label for="fecha_mantenimiento">Mantenimiento Actual Preventivo</label></b>
+                        <input type="date" id="fecha_mantenimiento" name="fecha_mantenimiento" value="{{ producto.fecha_mantenimiento }}" class="form-control">
+                    </div>
+                    
+                    <div class="form-group">
+                        <b><label for="vencimiento_mantenimiento">Próximo Mantenimiento Preventivo</label></b>
+                        <input type="date" id="vencimiento_mantenimiento" name="vencimiento_mantenimiento" value="{{ producto.vencimiento_mantenimiento}}" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <b><label for="periodicidad_calibracion">Periodicidad Correctivo</label></b>
+                        <input type="text" id="periodicidad_calibracion" name="periodicidad_calibracion" value="{{ producto.periodicidad_calibracion }}"
+                            class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <b><label for="fecha_calibracion">Mantenimiento Actual Correctivo</label></b>
+                        <input type="date" id="fecha_calibracion" name="fecha_calibracion" value="{{ producto.fecha_calibracion}}"
+                            class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <b><label for="vencimiento_calibracion">Proximo Mantenimiento Correctivo</label></b>
+                        <input type="date" id="vencimiento_calibracion" name="vencimiento_calibracion"value="{{ producto.vencimiento_calibracion }}" 
+                            class="form-control">
+                    </div>
+
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <center><button type="submit" style="margin: 20px" class="btn btn-hv btn-lg"><FONT SIZE=3>actualizar</FONT></button></center>
+                    <div class="btn-eliminar"><center><a class="btn btn-hv btn-lg" href="{{ url_for('indexTecnologia') }}"><FONT SIZE=3>regresar</FONT></a></center></div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+
+{% endblock%}

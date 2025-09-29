@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>App Laboratorios Colmayor</title>
+  <link rel="stylesheet" href="https://bootswatch.com/5/materia/bootstrap.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
+  <link rel="icon" href="{{ url_for('static', filename='img/Escudo_Colmayor.png') }}" type="image/x-icon">
+</head>
+
+<body>
+  <!-- Barra lateral -->
+  <div class="sidebar collapsed" id="sidebar">
+    <!-- Botón para retraer y expandir el sidebar -->
+    <div class="toggle-btn" id="toggle-btn" onclick="toggleSidebar()">
+      <i class="fas fa-bars"></i>
+    </div>
+
+    <!-- Siempre visibles -->
+    <a href="{{ url_for('home') }}" data-icon="🏠"> Inicio</a>
+    <a href="{{ url_for('indexTecnologia') }}" data-icon="👨🏻‍🍳"> Tecnologia</a>
+    
+    <!-- Si estamos en /home para administrador-->
+    {% if current_user.rol == 'admin' %}
+      <a href="{{ url_for('index_modulo', modulo='salud') }}">👩🏻‍⚕️ Ciencias de la Salud</a>
+      <a href="{{ url_for('index_modulo', modulo='gastronomia') }}">👨🏻‍🍳 Gastronomía</a>
+      <a href="{{ url_for('index_modulo', modulo='lacma') }}">🏅 LACMA</a>
+      <a href="{{ url_for('index_modulo', modulo='arquitectura') }}">👷🏼‍♂️ Arquitectura e Ingeniería</a>
+      
+
+    {% elif current_user.rol == 'salud' %}
+      <a href="{{ url_for('index_modulo', modulo='salud') }}">👩🏻‍⚕️ Ciencias de la Salud</a>
+      {% if request.path == url_for('index_modulo', modulo='salud') %}
+        {% elif request.path == url_for('equiposDeBajaSalud') %}
+        <a href="{{ url_for('exportExcelDeBaja') }}" data-icon="📂"  id="btnExportarBaja"> Exportar Equipos De Baja</a>
+      {% endif %}
+
+    {% elif current_user.rol == 'gastronomia' %}
+      <a href="{{ url_for('index_modulo', modulo='gastronomia') }}">👨🏻‍🍳 Gastronomía</a>
+      {% if request.path == url_for('index_modulo', modulo='gastronomia') %}
+        {% elif request.path == url_for('equiposDeBajaSalud') %}
+        <a href="{{ url_for('exportExcelDeBaja') }}" data-icon="📂"  id="btnExportarBaja"> Exportar Equipos De Baja</a>
+      {% endif %}
+
+    {% elif current_user.rol == 'lacma' %}
+      <a href="{{ url_for('index_modulo', modulo='lacma') }}" data-icon="🏅"> LACMA</a>
+
+    {% elif current_user.rol == 'arquitectura' %}
+      <a href="{{ url_for('index_modulo', modulo='arquitectura') }}" data-icon="👷🏼‍♂️"> Arquitectura e Ingeniería</a>
+    {% endif %}
+
+
+    <!-- Si estamos en modulo SALUD -->
+    {% if request.path == url_for('index_modulo', modulo='salud') %}
+      <a href="{{ url_for('agregarNuevoProveedor') }}" data-icon="🚚"> Agregar Proveedor</a>
+      <a id="toggleFormBtn" class="btn-indexSalud" data-icon="➕"> Agregar Equipo Manual</a>
+      <a id="toggleForm" class="btn-indexSalud" data-icon="📩"> Agregar Equipos Masivos .CSV</a>
+      <a id="toggleFor"
+          class="btn-indexSalud"
+          data-bs-toggle="modal"
+          data-bs-target="#modalOpciones"
+          title="Actualizar fechas y guarda en historial" data-icon="🔁">
+           Actualización Masiva
+      </a>
+      <a href="{{ url_for('equiposDeBajaSalud') }}" data-icon="🗑️"> Equipos de Baja</a>
+      <a href="{{ url_for('historial_prestamo_salud')}}" data-icon="🕒"> Historial de Prestamos</a>
+      <a href="{{ url_for('exportCsv') }}" data-icon="📄"> Exportar Equipos Activos</a>
+    {% endif %}
+
+    <!-- Si estamos en modulo GASTRONOMIA -->
+    {% if request.path == url_for('index_modulo', modulo='gastronomia') %}
+      <a href="{{ url_for('agregarNuevoProveedor') }}" data-icon="🚚"> Agregar Proveedor</a>
+      <a id="toggleFormBtn" class="btn-indexSalud" data-icon="➕"> Agregar Equipo Manual</a>
+      <a id="toggleForm" class="btn-indexSalud" data-icon="📩"> Agregar Equipos Masivos .CSV</a>
+      <a id="toggleFor"
+          class="btn-indexSalud"
+          data-bs-toggle="modal"
+          data-bs-target="#modalOpciones"
+          title="Actualizar fechas y guarda en historial" data-icon="🔁">
+           Actualización Masiva
+      </a>
+      <a href="{{ url_for('equiposDeBajaSalud') }}" data-icon="🗑️"> Equipos de Baja</a>
+      <a href="{{ url_for('historial_prestamo_salud')}}" data-icon="🕒"> Historial de Prestamos</a>
+      <a href="{{ url_for('exportCsv') }}" data-icon="📄"> Exportar Equipos Activos</a>
+    {% endif %}
+
+    <!-- Si estamos en modulo TECNOLOGIA -->
+    {% if request.path == url_for('indexTecnologia') %}
+      <a id="toggleFormBtn" class="btn-indexSalud" data-icon="➕"> Agregar Equipo Manual</a>
+      <a id="toggleForm" class="btn-indexSalud" data-icon="📩"> Agregar Equipos Masivos .CSV</a>
+      <a id="toggleFor"
+          class="btn-indexSalud"
+          data-bs-toggle="modal"
+          data-bs-target="#modalOpciones"
+          title="Actualizar fechas y guarda en historial" data-icon="🔁">
+           Actualización Masiva
+      </a>
+      <a href="{{ url_for('equiposDeBajaSalud') }}" data-icon="🗑️"> Equipos de Baja</a>
+      <a href="{{ url_for('exportCsv') }}" data-icon="📄"> Exportar Equipos Activos</a>
+    {% elif request.path == url_for('equiposDeBajaSalud') %}
+      <a href="{{ url_for('exportExcelDeBaja') }}" data-icon="📂"  id="btnExportarBaja"> Exportar Equipos De Baja</a>
+    {% endif %}
+    
+    <a class="navbar-brand"></a>
+    
+    <!-- Cerrar sesión -->
+    <a href="{{ url_for('logout') }}" data-icon="🔒" class="logout"> Cerrar Sesión</a>
+  </div>
+
+  <!-- Contenido principal -->
+  <div class="content" id="content">
+    <div class="container-layout">
+      {% block body %}
+      {% endblock %}
+    </div>
+  </div>
+
+  <!-- Script para el colapso del sidebar -->
+  <script>
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        sidebar.classList.toggle('expanded'); // Alterna la clase expanded
+    }
+
+    // Añadir evento para expandir el sidebar al pasar el mouse
+    const sidebar = document.getElementById("sidebar");
+    sidebar.addEventListener("mouseenter", () => {
+        sidebar.classList.add("expanded"); // Expande al hacer hover
+    });
+
+    sidebar.addEventListener("mouseleave", () => {
+        sidebar.classList.remove("expanded"); // Colapsa al salir
+    });
+
+    // Mostrar el texto de los enlaces al expandir
+    sidebar.addEventListener("mouseenter", () => {
+        const links = sidebar.querySelectorAll('a');
+        links.forEach(link => link.classList.add('visible')); // Añade clase para mostrar texto
+    });
+
+    sidebar.addEventListener("mouseleave", () => {
+        const links = sidebar.querySelectorAll('a');
+        links.forEach(link => link.classList.remove('visible')); // Remueve clase para ocultar texto
+    });
+
+  </script>
+
+<!-- // Script para el boton Exportar equipos de baja -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("btnExportarBaja");
+  if (!btn) return;
+
+  btn.addEventListener("click", async (e) => {
+    e.preventDefault();
+
+    const seleccionados = [];
+    document.querySelectorAll(".equipo-checkbox:checked").forEach(chk => {
+      seleccionados.push({
+        cod_articulo: chk.dataset.codigo,
+        nombre_equipo: chk.dataset.nombre
+      });
+    });
+
+    if (seleccionados.length === 0) {
+      alert("Seleccione al menos un equipo");
+      return;
+    }
+    if (seleccionados.length > 20) {
+      alert("No puede seleccionar más de 20 equipos a la vez");
+      return;
+    }
+
+    try {
+      const resp = await fetch("{{ url_for('exportExcelDeBaja') }}", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": typeof csrf_token !== "undefined" ? csrf_token : ""
+        },
+        body: JSON.stringify({ equipos: seleccionados })
+      });
+
+      if (!resp.ok) {
+        const ct = resp.headers.get("content-type") || "";
+        if (ct.includes("application/json")) {
+          const j = await resp.json();
+          throw new Error(j.error || "Error al generar Excel");
+        }
+        throw new Error("Error al generar Excel");
+      }
+
+      const blob = await resp.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "equipos_baja.xlsx";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      alert(err.message || "Error al generar Excel");
+    }
+  });
+});
+</script>
+
+  <script type="text/javascript" src="{{url_for('static', filename='js/main.js')}}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"
+    integrity="sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"
+    integrity="sha384-mQ93GR66B00ZXjt0YO5KlohRA5SY2XofN4zfuZxLkoj1gXtW8ANNCe9d5Y3eG5eD"
+    crossorigin="anonymous"></script>
+</body>
+
+</html>

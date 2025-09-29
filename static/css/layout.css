@@ -1,0 +1,149 @@
+body {
+    display: flex;
+}
+
+/* Estilos generales del sidebar */
+.sidebar {
+    width: 60px; /* Ancho del sidebar colapsado */
+    height: 100vh;
+    position: fixed;
+    background-color: #143840;
+    padding-top: 20px;
+    transition: width 0.3s ease;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    /* transition: background-color 0.9s ease; */
+    z-index: 1000;
+}
+
+/* Ancho del sidebar expandido */
+.sidebar.expanded {
+    width: 320px; /* Ancho del sidebar expandido */
+}
+
+/* Estilo para los enlaces */
+.sidebar a {
+    font-size: 0; /* Oculta el texto cuando está colapsado */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: font-size 0.3s ease; /* Transición para el tamaño del texto */
+}
+
+/* Mostrar el texto al expandir */
+.sidebar.expanded a {
+    font-size: 18px; /* Tamaño del texto cuando el sidebar está expandido */
+}
+
+/* Asegurar que los iconos se muestren al estar colapsado */
+.sidebar.collapsed a::before {
+    content: attr(data-icon); /* Muestra el icono */
+    font-size: 18px;
+    margin-right: 0;
+}
+
+/* Efecto hover para los enlaces */
+.sidebar a:hover {
+    background-color: #25CACD; /* Color de fondo al hacer hover sobre los enlaces */
+}
+
+/* Botón para retraer y expandir el sidebar */
+.toggle-btn {
+    font-size: 24px;
+    cursor: pointer;
+    color: white;
+    padding: 10px 15px;
+    align-self: flex-start; /* Alinea el botón al principio */
+    transition: background-color 0.9s ease;
+}
+
+/* Estilo por defecto para los enlaces */
+.sidebar a {
+    padding: 10px 15px;
+    text-decoration: none;
+    color: white;
+    display: block;
+    transition: all 0.3s ease;
+}
+
+/* Cerrar sesión colocado en la parte inferior */
+.logout {
+    margin-top: auto; /* Empuja el botón hacia la parte inferior */
+    margin-bottom: 20px; /* Margen inferior para separarlo del borde */
+}
+
+/* Ajuste del contenido principal */
+.content {
+    margin-left: 90px; /* Ajuste cuando el sidebar está expandido */
+    padding: 150px;
+    width: 100%;
+    transition: margin-left 0.3s ease;
+    margin-top: -180px;
+}
+
+@media (max-height: 780px){
+    .content {
+        margin-left: 250px; /* Ajuste cuando el sidebar está expandido */
+        padding: 20px;
+        width: 100%;
+        transition: margin-left 0.3s ease;
+        margin-top: 10px;
+    }
+}
+
+.content.collapsed {
+    margin-left: 60px; /* Ajuste cuando el sidebar está colapsado */
+}
+
+/* Asegurar un estilo consistente para todos los enlaces */
+a {
+    color: rgba(var(--bs-link-color-rgb), var(--bs-link-opacity, 1));
+    text-decoration: underline;
+    width: 100%;
+    border-radius: 5%;
+}
+
+/* Ajustes para diferentes tamaños de pantalla */
+.container-layout,
+.container-salud,
+.container-home {
+    max-width: 1600px;
+    padding: 1%;
+    margin-top: 2%;
+    margin-left: 0;
+}
+
+@media (max-height: 780px) {
+    .container-layout {
+        max-width: 1300px;
+        padding: 5%;
+        margin-top: -1%;
+        margin-left: 30px;
+    }
+}
+
+.container-salud {
+    margin-left: -15px;
+}
+
+@media (max-height: 780px) {
+    .container-salud {
+        max-width: 900px;
+        margin-top: -5%;
+        margin-left: 12px;
+    }
+}
+
+.container-home {
+    margin-left: 0px;
+}
+
+@media (max-height: 780px) {
+    .container-home {
+        max-width: 1300px;
+        margin-top: -1%;
+        margin-left: -70px;
+    }
+}
+

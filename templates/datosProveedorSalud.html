@@ -1,0 +1,172 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="https://bootswatch.com/5/materia/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .cv-container {
+            display: flex;
+            max-width: 900px;
+            margin: auto;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .left-column {
+            width: 35%;
+            background-color: #434242;
+            color: white;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .left-column img {
+            border-radius: 50%;
+            margin-bottom: 20px;
+            top: 130px;
+        }
+        .left-column h2 {
+            margin-bottom: 20px;
+        }
+        .left-column p {
+            text-align: center;
+        }
+        .contact-info, .references {
+            width: 100%;
+            margin-top: 20px;
+        }
+        .contact-info li, .references li {
+            /* padding: 10px; */
+            font-size: 20px;
+            list-style: none;
+            margin-bottom: 10px;
+        }
+        .contact-info li span, .references li span {
+            margin-left: 10px;
+        }
+        .right-column {
+            width: 65%;
+            padding: 20px;
+            background-color: #fff;
+        }
+        .right-column h1, .right-column h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .section h2 {
+            border-bottom: 2px solid #333;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+        }
+        .section p, .section ul {
+            margin: 0;
+            padding: 0;
+        }
+        .section ul li {
+            margin-bottom: 10px;
+        }
+        .btn-update-proveedor {
+            background-color: rgba(20, 56, 64, 1);
+            /* Color de fondo */
+            color: white;
+            /* Color del texto, ajustable */
+            border: none;
+            /* Remover bordes si deseas */
+        }
+
+        .btn-update-proveedor:hover {
+            background-color: rgba(37, 202, 205, 1);
+            /* Color más claro para hover */
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="col-md-12 mb-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category,message in messages %}
+                    <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="close" data-bs-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    {% for proveedor in datosproveedorsalud %}
+    <div class="cv-container">
+        <div class="left-column">
+            <img src="{{ url_for('static', filename='img//siluetapp.png') }}" alt="Producto Imagen" width="210">
+            <div class="contact-info">
+                <ul>
+                    <li><i class="fas bi-telephone-fill"></i> <span>{{ proveedor.telefono_empresa }}</span></li>
+                    <li><i class="fas fa-solid fa-city"></i> <span>{{ proveedor.nombre_empresa }}</span></li>
+                    <li><i class="fas fa-regular fa-user"></i> <span>{{ proveedor.nombre_contacto }}</span></li>
+                    <li><i class="fas fa-envelope"></i> <span>{{ proveedor.correo }}</span></li>
+                    <li><i class="fas fa-user-tie"></i> <span>{{ proveedor.cargo_contacto }}</span></li>
+                    <li><i class="fas bi-geo-alt-fill"></i> <span>{{ proveedor.ciudad }}</span></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="right-column">
+            <div class="section">
+                <center><h2>Datos proveedor</h2></center>
+                <form action="/update_datos_proveedor_salud/{{ proveedor.id }}" method="POST">
+                    <div class="form-group">
+                        <label for="telefono_empresa">Telefono empresa</label>
+                        <input type="text" id="telefono_empresa" name="telefono_empresa" value="{{ proveedor.telefono_empresa }}" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="nombre_empresa">Nombre empresa</label>
+                        <input type="text" id="nombre_empresa" name="nombre_empresa" value="{{ proveedor.nombre_empresa}}" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="nombre_contacto">Nombre contacto</label>
+                        <input type="text" id="nombre_contacto" name="nombre_contacto" value="{{ proveedor.nombre_contacto }}" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="correo">Correo electronico</label>
+                        <input type="text" id="correo" name="correo" value="{{ proveedor.correo}}" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="cargo_contacto">Cargo contacto</label>
+                        <input type="text" id="cargo_contacto" name="cargo_contacto" value="{{ proveedor.cargo_contacto }}" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="ciudad">ciudad</label>
+                        <input type="text" id="ciudad" name="ciudad" value="{{ proveedor.ciudad }}" class="form-control">
+                    </div>
+
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <center><button type="submit" style="margin: 20px" class="btn btn-update-proveedor btn-lg"><FONT SIZE=3>actualizar</FONT></button></center>
+                    
+                    <div class="btn-eliminar">
+                        <center><a class="btn btn-update-proveedor btn-lg" href="{{ url_for('index_modulo', modulo='modulo') }}">
+                                    <FONT SIZE=3>regresar</FONT>
+                                </a>
+                        </center>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    </div>
+</body>  
+
+{% endblock%}

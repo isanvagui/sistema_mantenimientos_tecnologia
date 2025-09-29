@@ -1,0 +1,110 @@
+{% extends 'layout.html' %}
+
+{% block title %}Home{% endblock %}
+
+{% block body %}
+
+<!-- =======================================//================================================================ -->
+<div class="container-home">
+  <h1 class="nombre-Bienvenida"> Hola: {{ current_user.fullname }} </h1>
+
+  <div class="container-dashboard-home">
+    <div class="row no-gutters"> <!-- Agregue 'no-gutters' para eliminar el espacio entre columnas -->
+      
+      <div class="col-sm-6"> <!-- Columna para "CRITICOS" -->
+        <div class="grafico"
+          style="background-color: #143840; color: white; text-align: center; padding: 20px; box-sizing: border-box; border-radius: 10px;">
+          <h5>ESTADÍSTICAS DE VENCIMIENTO DE CALIBRACIÓN</h5>
+          <canvas id="vencimientoCalibracion" style="max-width: 100%;"></canvas>
+        </div>
+      </div>
+
+      <!-- Columna para "PRÓXIMOS A VENCER MATENIMINETO" con gráfico de torta -->
+      <div class="col-sm-6">
+        <div class="grafico"
+            style="background-color: #143840; color: white; text-align: center; padding: 20px; box-sizing: border-box; border-radius: 10px;">
+            <h5>ESTADÍSTICAS DE VENCIMIENTO DE MANTENIMIENTO</h5>
+            <canvas id="vencimientoMantenimiento" style="max-width: 100%;"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Configuración del gráfico FECHAS DE MANTENIMIENTO -->
+<script>
+    var ctx = document.getElementById('vencimientoMantenimiento').getContext('2d');
+    var vencimientoMantenimiento = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: ['Vencidas (<0 días)', 'Próximas a vencer (<=30 días)', 'Entre 31 y 90 días', 'Más de 90 días'],
+            datasets: [{
+                label: 'Estadísticas de Vencimiento Matenimiento',
+                data: [{{ vencidas_mantenimiento }}, {{ proximas_mantenimiento }}, {{ entre_31_y_90_mantenimiento }}, {{ mas_90_dias_mantenimiento }}],  // Aquí Flask inserta los valores
+                backgroundColor: [
+                    'rgba(128, 0, 128, 0.7)',   // Morado para vencidas
+                    'rgba(255, 99, 132, 0.7)',  // Rojo para <=30 días
+                    'rgba(255, 206, 86, 0.7)',  // Amarillo para entre 31 y 90 días
+                    'rgb(60, 179, 113)'   // Verde para más de 90 días
+                ],
+                borderColor: [
+                    'rgba(128, 0, 128, 1)',
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgb(127, 255, 212)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+</script>
+
+<!-- Configuración del gráfico FECHAS DE CALIBRACIÓN -->
+<script>
+  var ctx = document.getElementById('vencimientoCalibracion').getContext('2d');
+  var vencimientoCalibracion  = new Chart(ctx, {
+      type: 'pie',
+      data: {
+          labels: ['Vencidas (<0 días)', 'Próximas a vencer (<=30 días)', 'Entre 31 y 90 días', 'Más de 90 días'],
+          datasets: [{
+              label: 'Estadísticas de Vencimiento Calibración',
+              data: [{{ vencidas_calibracion }}, {{ proximas_calibracion }}, {{ entre_31_y_90_calibracion }}, {{ mas_90_dias_calibracion }}],  // Aquí Flask inserta los valores
+              backgroundColor: [
+                  'rgba(128, 0, 128, 0.7)',   // Morado para vencidas
+                  'rgba(255, 99, 132, 0.7)',  // Rojo para <=30 días
+                  'rgba(255, 206, 86, 0.7)',  // Amarillo para entre 31 y 90 días
+                  'rgb(60, 179, 113)'   // Verde para más de 90 días
+              ],
+              borderColor: [
+                  'rgba(128, 0, 128, 1)',
+                  'rgba(255, 99, 132, 1)',
+                  'rgba(255, 206, 86, 1)',
+                  'rgb(127, 255, 212)'
+              ],
+              borderWidth: 1
+          }]
+      },
+      options: {
+          responsive: true,
+          plugins: {
+              legend: {
+                  display: true,
+                  position: 'bottom'
+              }
+          }
+      }
+  });
+</script>
+
+{% endblock %}

@@ -1,0 +1,178 @@
+    {% extends 'layout.html' %}
+
+    {% block title %}historial fechas{% endblock %}
+
+    {% block body %}
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+        <link rel="stylesheet" href="https://bootswatch.com/5/materia/bootstrap.min.css">
+        <style>
+        .btn-update-data {
+            background-color: rgba(20, 56, 64, 1);
+            /* Color de fondo */
+            color: white;
+            /* Color del texto, ajustable */
+            border: none;
+            /* Remover bordes si deseas */
+        }
+
+        .btn-update-data:hover {
+            background-color: rgba(37, 202, 205, 1);
+            /* Color más claro para hover */
+        }
+        </style>
+    </head>
+
+    <body>
+        <div class="col-md-12 mb-4">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category,message in messages %}
+                        <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="close" data-bs-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        <div class="col-md-12">
+            <div class="dtable-container">
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered bg-white table-sm">
+                        <thead>
+                            <tr>
+                                <th>Código Equipo</th>
+                                <th>Nombre Equipo</th>
+                                <th>Ubicación</th>
+                                <th>Tipo</th>
+                                <th>Periodicidad</th>
+                                <!-- <td>Actual</td> -->
+                                <th>Fecha de Ejecución</th>
+                                <th>Datos Proveedor</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for registro in historial.mantenimiento %}                            
+                            <form method="POST" action="{{ url_for('update_historial_fechas') }}">
+                                <tr>
+                                    <td>{{ registro.cod_articulo}}</td>
+                                    <td>
+                                        {{ registro.nombre_equipo }}
+                                        <input type="hidden" name="nombre_equipo" value="{{ registro.nombre_equipo }}">
+                                    </td>
+                                    <td>
+                                        {{ registro.ubicacion_original }}
+                                        <input type="hidden" name="ubicacion_original" value="{{ registro.ubicacion_original }}">
+                                    </td>
+                                    <td>Mantenimiento</td>
+                                    <td><input type="text" name="periodicidad" value="{{ registro.periodicidad }}"></td>
+                                    <!-- <td><input type="date" name="fecha_mantenimiento" value="{{ registro.fecha_mantenimiento }}"></td> -->
+                                    <td><input type="date" name="vencimiento_mantenimiento" value="{{ registro.vencimiento_mantenimiento }}"></td>
+
+                                    <td>
+                                        {% if registro.id_proveedor_responsable %}
+                                        <div class="btn-eliminar">
+                                            <a href="{{ url_for('datosProveedorSalud', id=registro.id_proveedor_responsable) }}" class="btn btn-update-data btn-sm">
+                                                <FONT SIZE=2>datos</FONT>
+                                            </a>
+                                        </div>
+                                        {% else %}
+                                            <span class="text-muted">Sin proveedor</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <!-- <td>
+                                        <input type="hidden" name="csrf_token" value="{{csrf_token()}}" />
+                                        <input type="hidden" name="cod_articulo" value="{{ registro.cod_articulo }}">
+                                        <input type="hidden" name="id" value="{{ registro.id }}">
+                                        <button type="submit" class="btn btn-update-data" onclick="confirmUpdate(this)">Guardar</button>
+                                    </td> -->
+                                    <td>
+                                        <div class="btn-eliminar">
+                                            <!-- <button type="button" class="btn btn-update-data btn-sm" onclick="confirmUpdate(this)">Ver reportes</button> -->
+                                            <a href="{{ onedrive_link_mantenimiento }}" target="_blank" class="btn btn-update-data btn-sm">
+                                                REPORTES MTTO
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>    
+                            </form>
+                            {% endfor %}
+                            <!-- Mostrar registros de calibración -->
+                            {% for registro in historial.calibracion %}                            
+                            <form method="POST" action="{{ url_for('update_historial_fechas_calibracion') }}">
+                                <tr>
+                                    <td>{{ registro.cod_articulo}}</td>
+                                    <td>
+                                        {{ registro.nombre_equipo }}
+                                        <input type="hidden" name="nombre_equipo" value="{{ registro.nombre_equipo }}">
+                                    </td>
+                                    <td>
+                                        {{ registro.ubicacion_original }}
+                                        <input type="hidden" name="ubicacion_original" value="{{ registro.ubicacion_original }}">
+                                    </td>
+                                    <td>Calibración</td> 
+                                    <td><input type="text" name="periodicidad_calibracion" value="{{ registro.periodicidad_calibracion }}"></td>
+                                    <!-- <td><input type="date" name="fecha_calibracion" value="{{ registro.fecha_calibracion }}"></td> -->
+                                    <td><input type="date" name="vencimiento_calibracion" value="{{ registro.vencimiento_calibracion }}"></td>
+                                    <td>
+                                        {% if registro.id_proveedor_responsable %}
+                                        <div class="btn-eliminar"> 
+                                            <a href="{{ url_for('datosProveedorSalud', id=registro.id_proveedor_responsable) }}"  class="btn btn-update-data btn-sm"">
+                                                <FONT SIZE=2>datos</FONT>
+                                            </a> 
+                                        </div>
+                                        {% else %}
+                                            <span class="text-muted">Sin proveedor</span>
+                                        {% endif %}
+                                        
+                                    </td>
+
+                                    <!-- <td>
+                                        <input type="hidden" name="csrf_token" value="{{csrf_token()}}" />
+                                        <input type="hidden" name="cod_articulo" value="{{ registro.cod_articulo }}">
+                                        <input type="hidden" name="id" value="{{ registro.id }}">
+                                        <button type="submit" class="btn btn-update-data" onclick="confirmUpdate(this)">Guardar</button>
+                                    </td> -->
+                                    <td>
+                                        <div class="btn-eliminar">
+                                            <!-- <button type="button" class="btn btn-update-data btn-sm" onclick="confirmUpdate(this)">Ver reportes</button> -->
+                                            <a href="{{ onedrive_link_calibracion }}" target="_blank" class="btn btn-update-data btn-sm">
+                                                REPORTES CAL
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>    
+                            </form>                            
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="btn-eliminar">
+                <center><a class="btn btn-update-data btn-lg" href="{{ url_for('index_modulo', modulo='modulo') }}">
+                            <FONT SIZE=3>regresar</FONT>
+                        </a>
+                </center>
+            </div>
+        </div>
+        </div>
+        <script>
+            function confirmUpdate(button) {
+                if (confirm('¿Estás seguro de que quieres guardar los cambios?')) {
+                    // Enviar el formulario asociado al botón
+                    button.closest('form').submit();
+                }
+            }
+        </script>
+    </body>
+
+    {% endblock %}
