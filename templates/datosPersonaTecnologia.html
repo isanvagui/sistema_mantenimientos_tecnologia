@@ -107,56 +107,50 @@
                 {% endfor %}
             {% endif %}
         {% endwith %}
-    {% for proveedor in datosproveedorsalud %}
+    {% for persona in tecnologia_persona_responsable %}
     <div class="cv-container">
         <div class="left-column">
             <img src="{{ url_for('static', filename='img//siluetapp.png') }}" alt="Producto Imagen" width="210">
             <div class="contact-info">
                 <ul>
-                    <li><i class="fas bi-telephone-fill"></i> <span>{{ proveedor.telefono_empresa }}</span></li>
-                    <li><i class="fas fa-solid fa-city"></i> <span>{{ proveedor.nombre_empresa }}</span></li>
-                    <li><i class="fas fa-regular fa-user"></i> <span>{{ proveedor.nombre_contacto }}</span></li>
-                    <li><i class="fas fa-envelope"></i> <span>{{ proveedor.correo }}</span></li>
-                    <li><i class="fas fa-user-tie"></i> <span>{{ proveedor.cargo_contacto }}</span></li>
-                    <li><i class="fas bi-geo-alt-fill"></i> <span>{{ proveedor.ciudad }}</span></li>
+                    <li><i class="fas fa-barcode"></i> <span>{{ persona.documento_identidad }}</span></li>
+                    <!-- <li><i class="fas fa-solid fa-city"></i> <span>{{ persona.nombre_contratista }}</span></li> -->
+                    <li><i class="fas fa-regular fa-user"></i> <span>{{ persona.nombre_contratista }}</span></li>
+                    <!-- <li><i class="fas fa-envelope"></i> <span>{{ persona.correo }}</span></li> -->
+                    <!-- <li><i class="fas fa-user-tie"></i> <span>{{ persona.cargo_contacto }}</span></li> -->
+                    <li><i class="fas bi-geo-alt-fill"></i> <span>{{ persona.area }}</span></li>
                 </ul>
             </div>
         </div>
 
         <div class="right-column">
             <div class="section">
-                <center><h2>Datos proveedor</h2></center>
-                <form action="/update_datos_proveedor_salud/{{ proveedor.id }}" method="POST">
+                <center><h2>Datos persona responsable del equipo</h2></center>
+                <form action="/update_datos_proveedor_salud/{{ persona.id }}" method="POST">
                     <div class="form-group">
-                        <label for="telefono_empresa">Telefono empresa</label>
-                        <input type="text" id="telefono_empresa" name="telefono_empresa" value="{{ proveedor.telefono_empresa }}" class="form-control">
+                        <label for="documento_identidad">Documento de Identidad</label>
+                        <input type="text" id="documento_identidad" name="documento_identidad" value="{{ persona.documento_identidad }}" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="nombre_contacto">Nombre Contratista</label>
+                        <input type="text" id="nombre_contacto" name="nombre_contacto" value="{{ persona.nombre_contratista }}" class="form-control">
                     </div>
                     <div class="form-group">
-                        <label for="nombre_empresa">Nombre empresa</label>
-                        <input type="text" id="nombre_empresa" name="nombre_empresa" value="{{ proveedor.nombre_empresa}}" class="form-control">
+                        <label for="correo">Correo Electronico</label>
+                        <input type="text" id="correo" name="correo" value="{{ persona.correo}}" class="form-control">
                     </div>
+
                     <div class="form-group">
-                        <label for="nombre_contacto">Nombre contacto</label>
-                        <input type="text" id="nombre_contacto" name="nombre_contacto" value="{{ proveedor.nombre_contacto }}" class="form-control">
-                    </div>
-                    <div class="form-group">
-                        <label for="correo">Correo electronico</label>
-                        <input type="text" id="correo" name="correo" value="{{ proveedor.correo}}" class="form-control">
-                    </div>
-                    <div class="form-group">
-                        <label for="cargo_contacto">Cargo contacto</label>
-                        <input type="text" id="cargo_contacto" name="cargo_contacto" value="{{ proveedor.cargo_contacto }}" class="form-control">
-                    </div>
-                    <div class="form-group">
-                        <label for="ciudad">ciudad</label>
-                        <input type="text" id="ciudad" name="ciudad" value="{{ proveedor.ciudad }}" class="form-control">
+                        <label for="ciudad">Proceso</label>
+                        <input type="text" id="ciudad" name="ciudad" value="{{ persona.area }}" class="form-control">
                     </div>
 
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <center><button type="submit" style="margin: 20px" class="btn btn-update-proveedor btn-lg"><FONT SIZE=3>actualizar</FONT></button></center>
                     
                     <div class="btn-eliminar">
-                        <center><a class="btn btn-update-proveedor btn-lg" href="{{ url_for('index_modulo', modulo='modulo') }}">
+                        <center><a class="btn btn-update-proveedor btn-lg" href="{{ url_for('indexTecnologia') }}">
                                     <FONT SIZE=3>regresar</FONT>
                                 </a>
                         </center>

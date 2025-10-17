@@ -23,76 +23,14 @@
 
     <!-- Siempre visibles -->
     <a href="{{ url_for('home') }}" data-icon="🏠"> Inicio</a>
-    <a href="{{ url_for('indexTecnologia') }}" data-icon="👨🏻‍🍳"> Tecnologia</a>
+    <a href="{{ url_for('indexTecnologia') }}" data-icon="🤖"> Tecnologia</a>
     
-    <!-- Si estamos en /home para administrador-->
-    {% if current_user.rol == 'admin' %}
-      <a href="{{ url_for('index_modulo', modulo='salud') }}">👩🏻‍⚕️ Ciencias de la Salud</a>
-      <a href="{{ url_for('index_modulo', modulo='gastronomia') }}">👨🏻‍🍳 Gastronomía</a>
-      <a href="{{ url_for('index_modulo', modulo='lacma') }}">🏅 LACMA</a>
-      <a href="{{ url_for('index_modulo', modulo='arquitectura') }}">👷🏼‍♂️ Arquitectura e Ingeniería</a>
-      
-
-    {% elif current_user.rol == 'salud' %}
-      <a href="{{ url_for('index_modulo', modulo='salud') }}">👩🏻‍⚕️ Ciencias de la Salud</a>
-      {% if request.path == url_for('index_modulo', modulo='salud') %}
-        {% elif request.path == url_for('equiposDeBajaSalud') %}
-        <a href="{{ url_for('exportExcelDeBaja') }}" data-icon="📂"  id="btnExportarBaja"> Exportar Equipos De Baja</a>
-      {% endif %}
-
-    {% elif current_user.rol == 'gastronomia' %}
-      <a href="{{ url_for('index_modulo', modulo='gastronomia') }}">👨🏻‍🍳 Gastronomía</a>
-      {% if request.path == url_for('index_modulo', modulo='gastronomia') %}
-        {% elif request.path == url_for('equiposDeBajaSalud') %}
-        <a href="{{ url_for('exportExcelDeBaja') }}" data-icon="📂"  id="btnExportarBaja"> Exportar Equipos De Baja</a>
-      {% endif %}
-
-    {% elif current_user.rol == 'lacma' %}
-      <a href="{{ url_for('index_modulo', modulo='lacma') }}" data-icon="🏅"> LACMA</a>
-
-    {% elif current_user.rol == 'arquitectura' %}
-      <a href="{{ url_for('index_modulo', modulo='arquitectura') }}" data-icon="👷🏼‍♂️"> Arquitectura e Ingeniería</a>
-    {% endif %}
-
-
-    <!-- Si estamos en modulo SALUD -->
-    {% if request.path == url_for('index_modulo', modulo='salud') %}
-      <a href="{{ url_for('agregarNuevoProveedor') }}" data-icon="🚚"> Agregar Proveedor</a>
-      <a id="toggleFormBtn" class="btn-indexSalud" data-icon="➕"> Agregar Equipo Manual</a>
-      <a id="toggleForm" class="btn-indexSalud" data-icon="📩"> Agregar Equipos Masivos .CSV</a>
-      <a id="toggleFor"
-          class="btn-indexSalud"
-          data-bs-toggle="modal"
-          data-bs-target="#modalOpciones"
-          title="Actualizar fechas y guarda en historial" data-icon="🔁">
-           Actualización Masiva
-      </a>
-      <a href="{{ url_for('equiposDeBajaSalud') }}" data-icon="🗑️"> Equipos de Baja</a>
-      <a href="{{ url_for('historial_prestamo_salud')}}" data-icon="🕒"> Historial de Prestamos</a>
-      <a href="{{ url_for('exportCsv') }}" data-icon="📄"> Exportar Equipos Activos</a>
-    {% endif %}
-
-    <!-- Si estamos en modulo GASTRONOMIA -->
-    {% if request.path == url_for('index_modulo', modulo='gastronomia') %}
-      <a href="{{ url_for('agregarNuevoProveedor') }}" data-icon="🚚"> Agregar Proveedor</a>
-      <a id="toggleFormBtn" class="btn-indexSalud" data-icon="➕"> Agregar Equipo Manual</a>
-      <a id="toggleForm" class="btn-indexSalud" data-icon="📩"> Agregar Equipos Masivos .CSV</a>
-      <a id="toggleFor"
-          class="btn-indexSalud"
-          data-bs-toggle="modal"
-          data-bs-target="#modalOpciones"
-          title="Actualizar fechas y guarda en historial" data-icon="🔁">
-           Actualización Masiva
-      </a>
-      <a href="{{ url_for('equiposDeBajaSalud') }}" data-icon="🗑️"> Equipos de Baja</a>
-      <a href="{{ url_for('historial_prestamo_salud')}}" data-icon="🕒"> Historial de Prestamos</a>
-      <a href="{{ url_for('exportCsv') }}" data-icon="📄"> Exportar Equipos Activos</a>
-    {% endif %}
-
     <!-- Si estamos en modulo TECNOLOGIA -->
     {% if request.path == url_for('indexTecnologia') %}
+      <a href="{{ url_for('AGREGAR_NUEVA_PERSONA_TECNOLOGIA') }}" data-icon="🚚"> Agregar Persona Responsable</a>
       <a id="toggleFormBtn" class="btn-indexSalud" data-icon="➕"> Agregar Equipo Manual</a>
       <a id="toggleForm" class="btn-indexSalud" data-icon="📩"> Agregar Equipos Masivos .CSV</a>
+      
       <a id="toggleFor"
           class="btn-indexSalud"
           data-bs-toggle="modal"
@@ -100,9 +38,20 @@
           title="Actualizar fechas y guarda en historial" data-icon="🔁">
            Actualización Masiva
       </a>
-      <a href="{{ url_for('equiposDeBajaSalud') }}" data-icon="🗑️"> Equipos de Baja</a>
+
+      <a href="{{ url_for('index_otros_equipos_tecnologia') }}" data-icon="📦"> Otros Equipos de Tecnologia</a>
+      
+      <a href="{{ url_for('equipos_debaja_tecnologia') }}" data-icon="🗑️"> Equipos de Baja</a>
       <a href="{{ url_for('exportCsv') }}" data-icon="📄"> Exportar Equipos Activos</a>
-    {% elif request.path == url_for('equiposDeBajaSalud') %}
+    {% elif request.path == url_for('index_otros_equipos_tecnologia') %}
+      <a id="toggleFor"
+          class="btn-indexSalud"
+          data-bs-toggle="modal"
+          data-bs-target="#modalOpciones"
+          title="Actualizar fechas y guarda en historial" data-icon="🔁">
+           Actualización Masiva
+      </a>
+    {% elif request.path == url_for('equipos_debaja_tecnologia') %}
       <a href="{{ url_for('exportExcelDeBaja') }}" data-icon="📂"  id="btnExportarBaja"> Exportar Equipos De Baja</a>
     {% endif %}
     

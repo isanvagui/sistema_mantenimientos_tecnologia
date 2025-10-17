@@ -9,7 +9,7 @@ class DevelopmentConfig(Config):
     MYSQL_HOST = 'localhost'
     MYSQL_USER = 'root'
     MYSQL_PASSWORD = ''
-    MYSQL_DB = 'flaskinventario'
+    MYSQL_DB = 'mantenimientos_tecnologia'
 
 #para producción
 class ProductionConfig(Config):
@@ -18,7 +18,7 @@ class ProductionConfig(Config):
     MYSQL_PORT = 3306
     MYSQL_USER = 'dbgestionlab'
     MYSQL_PASSWORD = 'Medellin2025*'
-    MYSQL_DB = 'flaskinventario'
+    MYSQL_DB = 'mantenimientos_tecnologia'
 
     print('ok')
 

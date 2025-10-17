@@ -121,17 +121,13 @@
         <div class="left-column">
             
             <img src="{{ url_for('static', filename=producto.imagen) }}" alt="Producto Imagen" width="210">
-            <!-- <h2>{{ producto.nombre_equipo }}</h2> -->
-            <!-- <p>{{ producto.descripcion }}</p> -->
+
             <div class="contact-info">
                 <ul>
                     
                     <li><i class="fas fa-barcode"></i> <span>{{ producto.cod_articulo }}</span></li>
                     <li><i class="fas fa-calendar"></i> <span>{{ producto.fecha_ingreso }}</span></li>
-                    <!--<li><i class="fas fa-calendar-check"></i> <span>{{ producto.4 }}</span></li>-->
                     <li><i class="fas fa-calendar-plus"></i> <span>{{ producto.fecha_de_baja }}</span></li>
-                    <!--<li><i class="fas fa-calendar-alt"></i> <span>{{ producto.6 }}</span></li>-->
-                    <!-- <li><i class="fas fa-sync"></i> <span>{{ producto.periodicidad }}</span></li> -->
                 </ul>
             </div>
         </div>
@@ -144,12 +140,21 @@
                 <h2>Detalles del Equipo</h2>
                 <li><b>Nombre de equipo: </b>{{ producto.nombre_equipo }}</li>
                 <li><b>Estado de equipo: </b>{{ producto.estado_equipo}}</li>
-                <li><b>Ubicación equipo: </b>{{ producto.ubicacion_original }}</li>
+
+                <li><b>Proceso: </b>
+                    {% if producto.ubicacion_original in ubicacionEquipos %}
+                        {{ ubicacionEquipos[producto.ubicacion_original] }}
+                    {% else %}
+                        <span class="text-muted">Sin ubicación</span>
+                    {% endif %}
+                </li>
+
                 <li><b>Marca de equipo: </b>{{ producto.marca_equipo_tecnologia }}</li>
                 <li><b>Modelo de equipo: </b>{{ producto.modelo_equipo_tecnologia}}</li>
                 <li><b>Serial de equipo: </b>{{ producto.serial_equipo_tecnologia }}</li>
                 <li><b>Memoria Ram: </b>{{ producto.ram }}</li>
                 <li><b>Disco Duro: </b>{{ producto.disco }}</li>
+                <li><b>Tipo de equipo: </b>{{ producto.tipo_equipo }}</li>
                 <li><b>Software Instalado: </b>{{ producto.software_instalado}}</li>
 
                 <li><b>Responsable del equipo: </b>
@@ -159,12 +164,10 @@
                         <span class="text-muted">Sin persona</span>
                     {% endif %}
                 </li>
-                <!-- <p>{{ producto.descripcion }}</p> -->
             </div>
 
             <div class="section">
                 <h2>Información de Mantenimiento</h2>
-                <!-- <ul> -->
                 <li><b>Fecha Compra: </b>{{ producto.fecha_ingreso }}</li>
                 <li><b>Fecha de Baja: </b>{{ producto.fecha_de_baja }}</li>
                 
@@ -176,9 +179,7 @@
                 <li><b>Periodicidad Correctivo: </b>{{ producto.periodicidad_calibracion }}</li>
                 <li><b>Mantenimiento Actual Correctivo: </b>{{ producto.fecha_calibracion}}</li>
                 <li><b>Próximo Mantenimiento Correctivo: </b>{{ producto.vencimiento_calibracion }}</li>
-                <!--<li><b>Ubicación Original: </b>{{ producto.10 }}</li>-->
                 
-                <!-- </ul> -->
             </div>
 
             <div class="section">
@@ -201,24 +202,6 @@
 
                 <form action="/actualizarTecnologia/{{ producto.id }}" method="POST">
                     
-                     <!-- <div class="section">
-                        <h2>Especificaciones de instalación</h2>
-                        <div class="form-group">
-                            <label for="especificaciones_instalacion"></label>
-                            <textarea id="especificaciones_instalacion" name="especificaciones_instalacion"
-                                class="form-control">{{ producto.19 }}</textarea>
-                        </div>
-                    </div> -->
-
-                    <!--<div class="section">
-                        <h2>Cuidados básicos</h2>
-                        <div class="form-group">
-                            <label for="cuidados_basicos"></label>
-                            <textarea id="cuidados_basicos" name="cuidados_basicos"
-                                class="form-control">{{ producto.19 }}</textarea>
-                        </div>
-                    </div> -->
-                    
                     <h2>Acciones</h2>
                     <div class="form-group">
                         <b><label for="cod_articulo">Codigo Articulo</label></b>
@@ -231,10 +214,27 @@
                             class="form-control">
                     </div>
 
-                    <div class="form-group">
+                    <!-- <div class="form-group">
                         <b><label for="ubicacion">Ubicación equipo</label></b>
                         <input type="text" id="ubicacion" name="ubicacion" value="{{ producto.ubicacion_original }}"
                             class="form-control">
+                    </div> -->
+                    <div class="form-group">
+                        <b><label for="selectUbicacion">Proceso</label></b>
+                        <select id="selectUbicacion" name="ubicacion_original" class="form-control">
+                            
+                            <!-- Opción inicial SI NO hay ubicación asignada -->
+                            <option value="" {% if not producto.ubicacion_original %}selected{% endif %}>
+                                Sin ubicación
+                            </option>
+                            
+                            {% for id_ubicacion, ubicacionEquipo in ubicacionEquipos.items() %}
+                                <option value="{{ id_ubicacion }}"
+                                    {% if producto.ubicacion_original == id_ubicacion %}selected{% endif %}>
+                                    {{ ubicacionEquipo }}
+                                </option>
+                            {% endfor %}
+                        </select>
                     </div>
 
                     <div class="form-group">
@@ -278,7 +278,8 @@
 
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <center><button type="submit" style="margin: 20px" class="btn btn-hv btn-lg"><FONT SIZE=3>actualizar</FONT></button></center>
-                    <div class="btn-eliminar"><center><a class="btn btn-hv btn-lg" href="{{ url_for('indexTecnologia') }}"><FONT SIZE=3>regresar</FONT></a></center></div>
+                     <br>
+                    <!-- <div class="btn-eliminar"><center><a class="btn btn-hv btn-lg" href="{{ url_for('indexTecnologia') }}"><FONT SIZE=3>regresar</FONT></a></center></div> -->
                 </form>
             </div>
         </div>

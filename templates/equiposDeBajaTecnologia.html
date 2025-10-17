@@ -18,18 +18,19 @@
                         <table id="tabla" class="table table-striped table-bordered bg-white table-sm"> 
                             <thead>
                                 <tr>
-                                    <th>Codigo Equipo</th>
-                                    <th title="Fecha de ingreso del equipo a la institución">Fecha ingreso</th>
-                                    <th>Fecha de baja</th>
-                                    <th>Nombre de equipo</th>
-                                    <th>Estado equipo</th>
-                                    <th>Ubicación original</th>
-                                    <th>Proveedor de Venta</th>
+                                    <th>Placa Equipo</th>
+                                    <th>Nombre de Equipo</th>
+                                    <th>Fecha Compra</th>
+                                    <th>Fecha de Baja</th>
+                                    <th>Tipo Equipo</th>
+                                    <th>Estado Equipo</th>
+                                    <!-- <th>Ubicación original</th> -->
+                                    <!-- <th>Responsable del Equipo</th> -->
                                     <th>Acción</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for producto in equipos_de_baja %}
+                                {% for producto in equipos_de_baja_tecnologia %}
                                 <tr>
                                     <td>
                                         <input 
@@ -40,36 +41,15 @@
 
                                         <span>{{ producto.cod_articulo }}</span>
                                     </td>
-                                    
+                                    <td>{{ producto.nombre_equipo }}</td>
                                     <td>{{ producto.fecha_ingreso }}</td>
                                     <td>{{ producto.fecha_de_baja }}</td>
-                                    <td>{{ producto.nombre_equipo }}</td>
-
-                                    <td>
-                                        <form action="/update_estado_equipo" method="POST">
-                                            <input type="hidden" name="csrf_token" value="{{csrf_token()}}">
-                                            <select name="nuevo_estado_equipo">
-                                                {% for estadoEquipo in estadoEquipos %}
-                                                <option value="{{ estadoEquipo.estado_equipo }}" {% if producto.estado_equipo == estadoEquipo.estado_equipo %}selected{% endif %}>
-                                                    {{ estadoEquipo.estado_equipo }}
-                                                </option>
-                                                {% endfor %}
-                                            </select>
-                                        </form>
-                                    </td>
-                                    <td>{{ producto.ubicacion_original }}</td>
-
-                                    <td>
-                                        <div class="btn-eliminar">
-                                            <a href="/datosProveedorSalud/{{ producto.proveedor_responsable }}" class="btn btn-tabla btn-lg">
-                                                <FONT SIZE=3>datos</FONT>
-                                            </a>
-                                        </div>
-                                    </td>
+                                    <td>{{ producto.tipo_equipo }}</td>
+                                    <td>{{ producto.estado_equipo }}</td>
 
                                     <td>
                                         <div class="text-center mt-2">
-                                            <a href="{{ url_for('GET_PRODUCTO_SALUD', id=producto['id'], vista='equiposDeBajaSalud') }}" class="btn btn-secondary btn-sm"><FONT SIZE=2>Editar/Ver hoja de vida</FONT></a>
+                                            <a href="{{ url_for('GET_EQUIPO_TECNOLOGIA', id=producto['id'], vista='equiposDeBajaTecnologia') }}" class="btn btn-secondary btn-sm"><FONT SIZE=2>Editar/Ver hoja de vida</FONT></a>
                                         </div>
 
                                     </td>

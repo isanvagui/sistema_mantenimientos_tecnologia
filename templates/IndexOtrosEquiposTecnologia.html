@@ -10,184 +10,6 @@
 <div class="container-salud">
     <div class="container-indexSalud">
         <div class="row">
-            <div class="col-md-12 mb-4">
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        {% for category,message in messages %}
-                            <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }} alert-dismissible fade show" role="alert">
-                                {{ message }}
-                                <button type="button" class="close" data-bs-dismiss="alert" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
-                {% endwith %}
-
-                <br>
-                <div class="div1-indexSalud" id="formContainer" style="display: none;">
-                    <div class="card-indexSalud">
-                        <form action="{{ url_for('AGREGAR_EQUIPOS_TECNOLOGIA') }}" method="POST" enctype="multipart/form-data">
-                            <div class="form-grid">
-                                <!-- Aquí se ajusta el formulario para ser responsivo -->
-                                <div class="row">
-                                    <div class="col-md-6 form-group">
-                                        <input type="text" name="cod_articulo" placeholder="Placa Equipo"
-                                            class="form-control">
-                                    </div>
-                                    <div class="col-md-6 form-group">
-                                        <input type="text" name="nombre_equipo" placeholder="Nombre Equipo"
-                                            class="form-control">
-                                    </div>
-
-                                    <div class="col-md-6 form-group">
-                                        <label for="fecha_mantenimiento" style="color: darkgray">Mantenimiento Actual Preventivo</label>
-                                        <input id="fecha_mantenimiento"  type="date" name="fecha_mantenimiento" class="form-control">
-                                    </div>
-                                    <div class="col-md-6 form-group">
-                                        <label for="vencimiento_mantenimiento" style="color: darkgray">Próximo Mantenimiento Preventivo</label>
-                                        <input id="vencimiento_mantenimiento" type="date" name="vencimiento_mantenimiento" class="form-control">
-                                    </div>
-
-                                    <div class="col-md-6 form-group">
-                                        <label for="fecha_calibracion" style="color: darkgray">Mantenimiento Actual Correctivo</label>
-                                        <input id="fecha_calibracion" type="date" name="fecha_calibracion" class="form-control">
-                                    </div>
-                                    <div class="col-md-6 form-group">
-                                        <label for="vencimiento_calibracion" style="color: darkgray">Próximo Mantenimiento Correctivo</label>
-                                        <input id="vencimiento_calibracion" type="date" name="vencimiento_calibracion" class="form-control">
-                                    </div>
-
-                                    <div class="col-md-6 form-group">
-                                        <label for="fecha_ingreso" style="color: darkgray">Fecha Compra</label>
-                                        <input id="fecha_ingreso" type="date" name="fecha_ingreso" class="form-control">
-                                    </div>
-                                    
-                                    <div class="col-md-6 form-group">
-                                        <label for="tipo_equipo">Tipo Equipo</label>
-                                        <select id="tipo_equipo" name="tipo_equipo" class="form-control" required>
-                                            <!-- Opción inicial -->
-                                            <option value="" disabled selected>Seleccione tipo</option>
-                                            <!-- Opciones que se encuentran en la DB -->
-                                            {% for tipoEquipo in tipoEquipos %}
-                                            <option value="{{ tipoEquipo.tipo_equipo }}">{{ tipoEquipo.tipo_equipo }}</option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-
-                                    <div class="col-md-6 form-group">
-                                        <label for="estado_equipo">Estado Equipo</label>
-                                        <select id="estado_equipo" name="estado_equipo" class="form-control" required>
-
-                                            <option value="" disabled selected>Seleccione Estado</option>
-
-                                            {% for estadoEquipo in estadoEquipos %}
-                                            <option value="{{ estadoEquipo.estado_equipo }}">{{ estadoEquipo.estado_equipo }}</option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-
-                                    <div class="col-md-6 form-group">
-                                        <label for="ubicacion_original">Proceso</label>
-                                        <select id="ubicacion_original" name="ubicacion_original" class="form-control" required>
-
-                                            <option value="" disabled selected>Seleccione Proceso</option>
-
-                                            {% for ubicacionEquipo in ubicacionEquipos %}
-                                            <option value="{{ ubicacionEquipo.id }}">{{ ubicacionEquipo.ubicacion_original }}</option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-
-                                    <div class="col-md-6 form-group">
-                                        <label for="proveedor_responsable">Tecnico Responsable</label>
-                                        <select id="proveedor_responsable" name="proveedor_responsable" class="form-control">
-
-                                            <option value="" selected>Seleccione Tecnico</option>
-
-                                            {% for proveedor in proveedores %}
-                                            <option value="{{ proveedor.id }}">{{ proveedor.nombre_tecnico }}</option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                    
-                                    <div class="col-md-6 form-group">
-                                        <label for="id_persona_responsable">Responsable del Equipo</label>
-                                        <select id="id_persona_responsable" name="id_persona_responsable" class="form-control" required>
-
-                                            <option value="" disabled selected>Seleccione Responsable</option>
-
-                                            {% for persona in personas %}
-                                            <option value="{{ persona.id }}">{{ persona.documento_identidad }}</option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-
-                                    <div class="col-md-6 form-group">
-                                        <input type="text" name="ram" placeholder="Memoria Ram"
-                                            class="form-control" required>
-                                    </div>
-
-                                    <div class="col-md-6 form-group">
-                                        <input type="text" name="disco" placeholder="Disco Duro" class="form-control">
-                                    </div>                                    
-
-                                    <div class="col-md-6 form-group">
-                                        <input type="text" name="marca_equipo_tecnologia" placeholder="Marca Equipo" class="form-control">
-                                    </div>
-                                    
-                                    <div class="col-md-6 form-group">
-                                        <input type="text" name="modelo_equipo_tecnologia" placeholder="Modelo Equipo" class="form-control">
-                                    </div>
-                                    
-                                    <div class="col-md-6 form-group">
-                                        <input type="text" name="serial_equipo_tecnologia" placeholder="Serial Equipo" class="form-control">
-                                    </div>
-
-                                    <div class="col-md-6 form-group">
-                                         <input type="text" name="software_instalado" placeholder="Software Instalado" class="form-control">
-                                    </div>
-
-                                    <div class="col-md-6 form-group">
-                                        <!-- Subir Imagen -->
-                                        <label for="imagen_producto" class="btn btn-secondary">Subir Imagen</label>
-                                        <input type="file" id="imagen_producto" name="imagen_producto" class="d-none" >
-                                        <span id="nombre-imagen" class="text-muted"></span>
-
-                                        <!-- Subir Guía PDF -->
-                                        <!-- <label for="guia_pdf" class="btn btn-secondary">Subir Guía</label>
-                                        <input type="file" id="guia_pdf" name="guia_pdf" class="d-none">
-                                        <span id="nombre-pdf" class="text-muted"></span> -->
-                                    </div>
-
-                                </div>
-                            </div>
-                            <input type="hidden" name="csrf_token" value="{{csrf_token()}}" />
-                            <div class="form-group">
-                                <center><button type="submit" class="btn-indexSalud">GUARDAR</button></center>
-                            </div>
-                        </form>
-                    </div>
-
-                </div>
-            </div>
-
-            <!-- New form for inserting CSV -->
-            <div class="card-equipos-masivos" id="formContain" style="display: none;">
-                <form action="/insert_csvTecnologia" method="POST" enctype="multipart/form-data">
-                    <div class="form-group">
-                        <input type="file" name="file" accept=".csv" class="custom-file-input" required>
-                    </div>
-                    <!------ linea de token es necesaria ya que el sistema lo solicita-->
-                    <input type="hidden" name="csrf_token" value="{{csrf_token() }}" />
-                    <!---------------------- es solo esta linea----------------------->
-                    <div class="form-group">
-                        <center>
-                            <button type="submit" class="btn-indexSalud">Ingresar equipos</button>
-                        </center>
-                    </div>
-                </form>
-            </div>
 
             <!-- Modal Para Actualización de Fechas y Guardado de Historial-->
             <div class="modal fade" id="modalOpciones" tabindex="-1" aria-labelledby="modalOpcionesLabel" aria-hidden="true">
@@ -352,9 +174,11 @@
                                             
                                             {% if producto.checkbox_calibracion=='Activo' %}checked{% endif %}>
                                     </td>
+                                    <!-- <td class="semaforo" data-vencimiento="{{ producto.vencimiento_calibracion }}"></td> -->
 
                                     <td>{{ producto.tipo_equipo }}</td>
-                                    <td>
+                                    <td>{{ producto.estado_equipo }}</td>
+                                    <!-- <td>
                                         <form action="/update_estadoEquipoTecnologia" method="POST" id="estadoEquipoForm_{{ producto.id }}">
                                             <input type="hidden" name="csrf_token" value="{{csrf_token()}}">
                                             
@@ -398,14 +222,16 @@
                                             <br>
                                             <br>
                                         </form>
-                                    </td>
+                                    </td> -->
                                     <td>{{ ubicacionEquiposModal.get(producto.ubicacion_original, "Sin ubicación") }}</td>
+                                    <!-- <td>{{ producto.ubicacion_original }}</td> -->
                                     <td class="semaforo" data-vencimiento="{{ producto.vencimiento_mantenimiento }}"></td>
 
                                     <td>
                                         <div class="btn-eliminar">
                                             <a href="{{ url_for('GET_EQUIPO_TECNOLOGIA', id=producto['id'], vista='indexTecnologia') }}" class="btn btn-secondary btn-sm"><FONT SIZE=2>Editar/Ver hoja de vida</FONT></a>
                                         </div>
+
                                         
                                     </td>
                                 </tr>
@@ -415,46 +241,6 @@
                     </div>
                 </div>
             </div>   
-            <!-- Modal de Préstamo -->
-            <div class="modal fade" id="modalPrestamo" tabindex="-1" aria-labelledby="modalPrestamoLabel" aria-hidden="true">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalPrestamoLabel">Detalles del préstamo</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar" onclick="cerrarModal()"></button>
-                </div>
-
-                <div class="modal-body">
-                    <form id="formPrestamo">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                        <label for="inputCorreo" class="form-label">Correo de Quien Recibe:</label>
-                        <input type="email" class="form-control" id="inputCorreo" required>
-                        </div>
-
-                        <div class="col-md-6">
-                        <label for="inputRecibe" class="form-label">Nombre de Quien Recibe Equipo:</label>
-                        <input type="text" class="form-control" id="inputRecibe" required>
-                        </div>
-
-                        <div class="col-md-6">
-                        <label for="inputUbicacionDestino" class="form-label">Ubicación de Destino:</label>
-                        <input type="text" class="form-control" id="inputUbicacionDestino" required>
-                        </div>
-                    </div>
-                    </form>
-                </div>
-
-                <div class="modal-footer">
-                    <button type="button" id="guardarSeleccionados" class="btn btn-tabla btn-lg" onclick="guardarPrestamo()">Guardar</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"onclick="cerrarModal()">Cerrar</button>
-                </div>
-
-                </div>
-            </div>
-            </div>
-         
         </div>
     </div>
 </div>
@@ -591,39 +377,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 </script>
 
-<!-- Scripts para el ocultar el formulario -->
-<script>
-    document.getElementById('toggleFormBtn').addEventListener('click', function () {
-        var formContainer = document.getElementById('formContainer');
-        var toggleBtn = document.getElementById('toggleFormBtn');
-
-        if (formContainer.style.display === 'none' || formContainer.style.display === '') {
-            formContainer.style.display = 'block';
-            toggleBtn.textContent = ' Ocultar Formulario';
-        } else {
-            formContainer.style.display = 'none';
-            toggleBtn.textContent = ' Agregar Equipo Manual';
-        }
-    });
-</script>
-
-<!-- Scripts para insertar equipos masivos .CSV -->
-<script>
-    document.getElementById('toggleForm').addEventListener('click', function () {
-        var formContain = document.getElementById('formContain');
-        var toggleBtn = document.getElementById('toggleForm');
-
-        if (formContain.style.display === 'none' || formContain.style.display === '') {
-            formContain.style.display = 'block';
-            toggleBtn.textContent = ' Ocultar CSV';
-        } else {
-            formContain.style.display = 'none';
-            toggleBtn.textContent = ' Agregar Equipos Masivos CSV';
-        }
-    });
-</script>
-
-<!-- Scripts para actualizar fechas masivamente  -->
+<!-- Scripts para actualizar fechas masivamente desde el modal  -->
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
@@ -632,6 +386,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 </script>
+
 
 <!-- Scripts para el checkbox (Para activar o desactivar manualmente desde la tabla.) -->
 <script>

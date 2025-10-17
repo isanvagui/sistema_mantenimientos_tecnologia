@@ -49,7 +49,7 @@
                             <tr>
                                 <th>Código Equipo</th>
                                 <th>Nombre Equipo</th>
-                                <th>Ubicación</th>
+                                <th>Proceso</th>
                                 <th>Tipo</th>
                                 <th>Periodicidad</th>
                                 <!-- <td>Actual</td> -->
@@ -70,21 +70,19 @@
                                         <input type="hidden" name="nombre_equipo" value="{{ registro.nombre_equipo }}">
                                     </td>
                                     <td>
-                                        {{ registro.ubicacion_original }}
-                                        <input type="hidden" name="ubicacion_original" value="{{ registro.ubicacion_original }}">
+                                        {% if registro.ubicacion_original in ubicacionEquipos %}
+                                        {{ ubicacionEquipos[registro.ubicacion_original] }}
+                                        {% else %}
+                                            <span class="text-muted">Sin ubicación</span>
+                                        {% endif %}   
                                     </td>
                                     <td>Preventivo</td>
                                     <td><input type="text" name="periodicidad" value="{{ registro.periodicidad }}"></td>
-                                    <!-- <td><input type="date" name="fecha_mantenimiento" value="{{ registro.fecha_mantenimiento }}"></td> -->
                                     <td><input type="date" name="vencimiento_mantenimiento" value="{{ registro.vencimiento_mantenimiento }}"></td>
 
                                     <td>
                                         {% if registro.id_proveedor_responsable in proveedores%}
-                                        <!-- <div class="btn-eliminar">
-                                            <a href="{{ url_for('datosProveedorSalud', id=registro.id_proveedor_responsable) }}" class="btn btn-update-data btn-sm">
-                                                <FONT SIZE=2>datos</FONT>
-                                            </a>
-                                        </div> -->
+
                                         {{ proveedores[registro.id_proveedor_responsable] }}
                                         {% else %}
                                             <span class="text-muted">Sin proveedor</span>
@@ -93,11 +91,13 @@
                                     
                                     <td>
                                         {% if registro.id_persona_responsable in personas %}
-                                      
-                                            {{ personas[registro.id_persona_responsable] }}                                            
-                                        
+                                        <div class="btn-eliminar"> 
+                                            <a href="{{ url_for('DATOS_PERSONA_TECNOLOGIA', id=registro.id_persona_responsable) }}" class="btn btn-update-data btn-sm"">
+                                                <FONT SIZE=2>datos</FONT>
+                                            </a> 
+                                        </div>
                                         {% else %}
-                                            <span class="text-muted">Sin persona</span>
+                                            <span class="text-muted">Sin proveedor</span>
                                         {% endif %}    
                                     </td>
 
@@ -105,21 +105,6 @@
                                         {{ registro.observaciones }}
                                         <input type="hidden" name="observaciones" value="{{ registro.observaciones }}">
                                     </td>
-
-                                    <!-- <td>
-                                        <input type="hidden" name="csrf_token" value="{{csrf_token()}}" />
-                                        <input type="hidden" name="cod_articulo" value="{{ registro.cod_articulo }}">
-                                        <input type="hidden" name="id" value="{{ registro.id }}">
-                                        <button type="submit" class="btn btn-update-data" onclick="confirmUpdate(this)">Guardar</button>
-                                    </td> -->
-                                    <!-- <td>
-                                        <div class="btn-eliminar"> -->
-                                            <!-- <button type="button" class="btn btn-update-data btn-sm" onclick="confirmUpdate(this)">Ver reportes</button> -->
-                                            <!-- <a href="{{ onedrive_link_mantenimiento }}" target="_blank" class="btn btn-update-data btn-sm">
-                                                REPORTES MTTO
-                                            </a>
-                                        </div>
-                                    </td> -->
                                 </tr>    
                             </form>
                             {% endfor %}
@@ -132,21 +117,23 @@
                                         {{ registro.nombre_equipo }}
                                         <input type="hidden" name="nombre_equipo" value="{{ registro.nombre_equipo }}">
                                     </td>
+
                                     <td>
-                                        {{ registro.ubicacion_original }}
-                                        <input type="hidden" name="ubicacion_original" value="{{ registro.ubicacion_original }}">
+                                        {% if registro.ubicacion_original in ubicacionEquipos %}
+                                        {{ ubicacionEquipos[registro.ubicacion_original] }}
+                                        {% else %}
+                                            <span class="text-muted">Sin ubicación</span>
+                                        {% endif %}   
                                     </td>
+                                    
                                     <td>Correctivo</td> 
                                     <td><input type="text" name="periodicidad_calibracion" value="{{ registro.periodicidad_calibracion }}"></td>
-                                    <!-- <td><input type="date" name="fecha_calibracion" value="{{ registro.fecha_calibracion }}"></td> -->
                                     <td><input type="date" name="vencimiento_calibracion" value="{{ registro.vencimiento_calibracion }}"></td>
                                     <td>
                                         {% if registro.id_proveedor_responsable in proveedores %}
-                                        <!-- <div class="btn-eliminar">  -->
-                                            <!-- <a href="{{ url_for('DATOS_TECNICO_TECNOLOGIA', id=registro.id_proveedor_responsable) }}" class="btn btn-update-data btn-sm""> -->
+
                                             {{ proveedores[registro.id_proveedor_responsable] }}                                            
-                                            <!-- </a>  -->
-                                        <!-- </div> -->
+
                                         {% else %}
                                             <span class="text-muted">Sin proveedor</span>
                                         {% endif %}    
@@ -154,29 +141,20 @@
 
                                     <td>
                                         {% if registro.id_persona_responsable in personas %}
-                                      
-                                            {{ personas[registro.id_persona_responsable] }}                                            
-                                        
+                                        <div class="btn-eliminar"> 
+                                            <a href="{{ url_for('DATOS_PERSONA_TECNOLOGIA', id=registro.id_persona_responsable) }}" class="btn btn-update-data btn-sm"">
+                                                <FONT SIZE=2>datos</FONT>
+                                            </a> 
+                                        </div>
                                         {% else %}
-                                            <span class="text-muted">Sin persona</span>
+                                            <span class="text-muted">Sin proveedor</span>
                                         {% endif %}    
                                     </td>
                                     
-
-                                    <!-- <td>
-                                        <input type="hidden" name="csrf_token" value="{{csrf_token()}}" />
-                                        <input type="hidden" name="cod_articulo" value="{{ registro.cod_articulo }}">
-                                        <input type="hidden" name="id" value="{{ registro.id }}">
-                                        <button type="submit" class="btn btn-update-data" onclick="confirmUpdate(this)">Guardar</button>
-                                    </td> -->
-                                    <!-- <td>
-                                        <div class="btn-eliminar"> -->
-                                            <!-- <button type="button" class="btn btn-update-data btn-sm" onclick="confirmUpdate(this)">Ver reportes</button> -->
-                                            <!-- <a href="{{ onedrive_link_calibracion }}" target="_blank" class="btn btn-update-data btn-sm">
-                                                REPORTES CAL
-                                            </a>
-                                        </div>
-                                    </td> -->
+                                    <td class="col-md-3">
+                                        {{ registro.observaciones }}
+                                        <input type="hidden" name="observaciones" value="{{ registro.observaciones }}">
+                                    </td>
                                 </tr>    
                             </form>                            
                             {% endfor %}

@@ -73,31 +73,31 @@
     <div class="cv-container">
         <div class="right-column">
             <div class="section">
-                <center><h2>Agregar proveedor</h2></center>
-                <form action="/add_datos_proveedor_salud" method="POST" enctype="multipart/form-data">
+                <center><h2>Agregar nueva persona</h2></center>
+                <form action="/add_datosPersonaTecnologia" method="POST" enctype="multipart/form-data">
                     <div class="form-group">
-                        <label for="telefono_empresa">Telefono empresa</label>
-                        <input type="text" name="telefono_empresa" class="form-control" required>
+                        <label for="documento_identidad">Documento de identidad</label>
+                        <input type="text" name="documento_identidad" class="form-control" required>
                     </div>
-                    <div class="form-group">
+                    <!-- <div class="form-group">
                         <label for="nombre_empresa">Nombre empresa</label>
                         <input type="text" name="nombre_empresa" class="form-control" required>
-                    </div>
+                    </div> -->
                     <div class="form-group">
-                        <label for="nombre_contacto">Nombre contacto</label>
-                        <input type="text" name="nombre_contacto" class="form-control" required>
+                        <label for="nombre_contratista">Nombre persona</label>
+                        <input type="text" name="nombre_contratista" class="form-control" required>
                     </div>
                     <div class="form-group">
                         <label for="correo">Correo electronico</label>
                         <input type="text" name="correo" class="form-control" required>
                     </div>
-                    <div class="form-group">
+                    <!-- <div class="form-group">
                         <label for="cargo_contacto">Cargo del contacto</label>
                         <input type="text" name="cargo_contacto" class="form-control" required>
-                    </div>
+                    </div> -->
                     <div class="form-group">
-                        <label for="ciudad">Ciudad</label>
-                        <input type="text" name="ciudad" class="form-control" required>
+                        <label for="area">Proceso</label>
+                        <input type="text" name="area" class="form-control" required>
                     </div>
 
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -107,7 +107,7 @@
                             </button>
                     </center>
                     <div class="btn-eliminar">
-                        <center><a class="btn btn-proveedor btn-lg" href="{{ url_for('index_modulo', modulo='modulo') }}">
+                        <center><a class="btn btn-proveedor btn-lg" href="{{ url_for('indexTecnologia') }}">
                                     <FONT SIZE=3>regresar</FONT>
                                 </a>
                         </center>
