@@ -1,0 +1,189 @@
+    {% extends 'layout.html' %}
+
+    {% block title %}historial correctivo{% endblock %}
+
+    {% block body %}
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+        <link rel="stylesheet" href="https://bootswatch.com/5/materia/bootstrap.min.css">
+        <style>
+        .btn-update-data {
+            background-color: rgba(20, 56, 64, 1);
+            /* Color de fondo */
+            color: white;
+            /* Color del texto, ajustable */
+            border: none;
+            /* Remover bordes si deseas */
+        }
+
+        .btn-update-data:hover {
+            background-color: rgba(37, 202, 205, 1);
+            /* Color más claro para hover */
+        }
+        </style>
+    </head>
+
+    <body>
+        <div class="col-md-12 mb-4">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category,message in messages %}
+                        <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="close" data-bs-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        <div class="col-md-12">
+            <div class="dtable-container">
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered bg-white table-sm">
+                        <thead>
+                            <tr>
+                                <th>Código Equipo</th>
+                                <th>Nombre Equipo</th>
+                                <th>Proceso</th>
+                                <th>Tipo</th>
+                                <th>Periodicidad</th>
+                                <!-- <td>Actual</td> -->
+                                <th>Fecha de Ejecución</th>
+                                <th>Tecnico Responsable</th>
+                                <th>Persona Responsable</th>
+                                <th>Observaciones</th>
+                                <!-- <th>Acciones</th> -->
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- {% for registro in historial.correctivo %}                            
+                            <form method="POST" action="{{ url_for('update_historial_mantenimiento_correctivo') }}">
+                                <tr>
+                                    <td>{{ registro.cod_articulo}}</td>
+                                    <td>
+                                        {{ registro.nombre_equipo }}
+                                        <input type="hidden" name="nombre_equipo" value="{{ registro.nombre_equipo }}">
+                                    </td>
+                                    <td>
+                                        {% if registro.ubicacion_original in ubicacionEquipos %}
+                                        {{ ubicacionEquipos[registro.ubicacion_original] }}
+                                        {% else %}
+                                            <span class="text-muted">Sin ubicación</span>
+                                        {% endif %}   
+                                    </td>
+                                    <td>Preventivo</td>
+                                    <td><input type="text" name="periodicidad" value="{{ registro.periodicidad_calibracion }}"></td>
+                                    <td><input type="date" name="vencimiento_calibracion" value="{{ registro.vencimiento_calibracion}}"></td>
+
+                                    <td>
+                                        {% if registro.id_proveedor_responsable in proveedores%}
+
+                                        {{ proveedores[registro.id_proveedor_responsable] }}
+                                        {% else %}
+                                            <span class="text-muted">Sin proveedor</span>
+                                        {% endif %}
+                                    </td>
+                                    
+                                    <td>
+                                        {% if registro.id_persona_responsable in personas %}
+                                        <div class="btn-eliminar"> 
+                                            <a href="{{ url_for('DATOS_PERSONA_TECNOLOGIA', id=registro.id_persona_responsable) }}" class="btn btn-update-data btn-sm"">
+                                                <FONT SIZE=2>datos</FONT>
+                                            </a> 
+                                        </div>
+                                        {% else %}
+                                            <span class="text-muted">Sin proveedor</span>
+                                        {% endif %}    
+                                    </td>
+
+                                    <td class="col-md-3">
+                                        {{ registro.observaciones }}
+                                        <input type="hidden" name="observaciones" value="{{ registro.observaciones }}">
+                                    </td>
+                                </tr>    
+                            </form>
+                            {% endfor %} -->
+                            <!-- Mostrar registros de correctivo -->
+                            {% for registro in historial.correctivo | sort(attribute='id', reverse=False) %}
+                                <tr>
+                                    <td>{{ registro.cod_articulo }}</td>
+
+                                    <td>
+                                        {{ registro.nombre_equipo }}
+                                        <input type="hidden" name="nombre_equipo" value="{{ registro.nombre_equipo }}">
+                                    </td>
+
+                                    <td>
+                                        {% if registro.ubicacion_original in ubicacionEquipos %}
+                                            {{ ubicacionEquipos[registro.ubicacion_original] }}
+                                        {% else %}
+                                            <span class="text-muted">Sin ubicación</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td>Correctivo</td>
+
+                                    <td>
+                                        <input type="text" name="periodicidad" value="{{ registro.periodicidad_calibracion }}">
+                                    </td>
+
+                                    <td>
+                                        <input type="date" name="vencimiento_calibracion" value="{{ registro.vencimiento_calibracion }}">
+                                    </td>
+
+                                    <td>
+                                        {% if registro.id_proveedor_responsable in proveedores %}
+                                            {{ proveedores[registro.id_proveedor_responsable] }}
+                                        {% else %}
+                                            <span class="text-muted">Sin proveedor</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                        {% if registro.id_persona_responsable in personas %}
+                                            <div class="btn-eliminar">
+                                                <a href="{{ url_for('DATOS_PERSONA_TECNOLOGIA', id=registro.id_persona_responsable) }}" 
+                                                class="btn btn-update-data btn-sm">
+                                                    <small>Datos</small>
+                                                </a>
+                                            </div>
+                                        {% else %}
+                                            <span class="text-muted">Sin responsable</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td class="col-md-3">
+                                        {{ registro.observaciones or '' }}
+                                        <input type="hidden" name="observaciones" value="{{ registro.observaciones }}">
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="btn-eliminar">
+                <center><a class="btn btn-update-data btn-lg" href="{{ url_for('indexTecnologia') }}">
+                            <FONT SIZE=3>regresar</FONT>
+                        </a>
+                </center>
+            </div>
+        </div>
+        </div>
+        <script>
+            function confirmUpdate(button) {
+                if (confirm('¿Estás seguro de que quieres guardar los cambios?')) {
+                    // Enviar el formulario asociado al botón
+                    button.closest('form').submit();
+                }
+            }
+        </script>
+    </body>
+
+    {% endblock %}

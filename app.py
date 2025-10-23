@@ -874,8 +874,8 @@ def guardar_historial_tecnologia():
 
                 # Actualizar en tecnologia_equipos solo los preventivos
                 cur.execute(
-                    "UPDATE tecnologia_equipos SET fecha_mantenimiento = %s, vencimiento_mantenimiento = %s, periodicidad = %s, id_persona_responsable= %s, ubicacion_original= %s WHERE cod_articulo = %s",
-                    (nueva_fecha, nuevo_vencimiento, nueva_periodicidad, persona_id, ubicacion_id, producto_id)
+                    "UPDATE tecnologia_equipos SET fecha_mantenimiento = %s, vencimiento_mantenimiento = %s, periodicidad = %s, proveedor_responsable = %s, id_persona_responsable= %s, ubicacion_original= %s WHERE cod_articulo = %s",
+                    (nueva_fecha, nuevo_vencimiento, nueva_periodicidad, proveedor_id, persona_id, ubicacion_id, producto_id)
                 )
             
             # Obtener datos actuales para historial correctivo
@@ -909,8 +909,8 @@ def guardar_historial_tecnologia():
 
                 # Actualizar en tecnologia_equipos tanto los correctivos como los preventivos
                 cur.execute(
-                    "UPDATE tecnologia_equipos SET fecha_calibracion = %s, vencimiento_calibracion = %s, periodicidad_calibracion = %s, fecha_mantenimiento = %s, vencimiento_mantenimiento = %s, periodicidad = %s, id_persona_responsable= %s, ubicacion_original= %s WHERE cod_articulo = %s",
-                    (nueva_fecha, nuevo_vencimiento, nueva_periodicidad, nueva_fecha, nuevo_vencimiento, nueva_periodicidad, persona_id, ubicacion_id, producto_id)
+                    "UPDATE tecnologia_equipos SET fecha_calibracion = %s, vencimiento_calibracion = %s, periodicidad_calibracion = %s, fecha_mantenimiento = %s, vencimiento_mantenimiento = %s, periodicidad = %s, proveedor_responsable = %s, id_persona_responsable= %s, ubicacion_original= %s WHERE cod_articulo = %s",
+                    (nueva_fecha, nuevo_vencimiento, nueva_periodicidad, nueva_fecha, nuevo_vencimiento, nueva_periodicidad, proveedor_id, persona_id, ubicacion_id, producto_id)
                 )
 
         db.connection.commit()
@@ -1074,10 +1074,10 @@ def ACTUALIZAR_EQUIPO_TECNOLOGIA(id):
         flash('Equipo actualizado satisfactoriamente', 'success')
         return redirect(url_for('indexTecnologia', id=id))
     
-# HISTORIAL FECHAS MANTENIMIENTO TECNOLOGIA
-@app.route('/historialMantenimientoTecnologia/<cod_articulo>')
+# HISTORIAL FECHAS MANTENIMIENTO PREVENTIVO TECNOLOGIA
+@app.route('/historialPreventivoTecnologia/<cod_articulo>')
 @login_required
-def HISTORIAL_MANTENIMIENTO_TECNOLOGIA(cod_articulo):
+def HISTORIAL_PREVENTIVO_TECNOLOGIA(cod_articulo):
     cur = db.connection.cursor(MySQLdb.cursors.DictCursor)
     try:
         cur.execute(
@@ -1092,6 +1092,41 @@ def HISTORIAL_MANTENIMIENTO_TECNOLOGIA(cod_articulo):
         )
         preventivo = cur.fetchall()
 
+        # Trae el nombre de los técnicos
+        cur.execute("SELECT id, nombre_tecnico FROM tecnologia_tecnico_responsable")
+        proveedores_data = cur.fetchall()
+        proveedores = {p["id"]: p["nombre_tecnico"] for p in proveedores_data}
+
+        # Personas responsables → dict id:nombre
+        cur.execute('SELECT id, nombre_contratista FROM tecnologia_persona_responsable')
+        personas_data = cur.fetchall()
+        personas = {r["id"]: r["nombre_contratista"] for r in personas_data}
+
+        cur.execute('SELECT id, ubicacion_original FROM tecnologia_ubicacion_equipos')
+        ubicacionEquipos_data = cur.fetchall()
+        ubicacionEquipos = {p["id"]: p["ubicacion_original"] for p in ubicacionEquipos_data}
+
+        historial = {
+            'preventivo': preventivo
+            # 'correctivo': correctivo
+        }
+
+        return render_template('historialPreventivoTecnologia.html', historial=historial, proveedores=proveedores, personas=personas, ubicacionEquipos=ubicacionEquipos)
+
+    except Exception as e:
+        print(f"Error al obtener el historial: {str(e)}")
+        flash('Error al obtener el historial de fechas.', 'danger')
+        return redirect(url_for('indexTecnologia'))
+    finally:
+        cur.close()
+
+
+# HISTORIAL FECHAS MANTENIMIENTO CORRECTIVO TECNOLOGIA
+@app.route('/historialCorrectivoTecnologia/<cod_articulo>')
+@login_required
+def HISTORIAL_CORRECTIVO_TECNOLOGIA(cod_articulo):
+    cur = db.connection.cursor(MySQLdb.cursors.DictCursor)
+    try:
         cur.execute(
             """
             SELECT id, cod_articulo, nombre_equipo, ubicacion_original, fecha_calibracion, 
@@ -1119,11 +1154,11 @@ def HISTORIAL_MANTENIMIENTO_TECNOLOGIA(cod_articulo):
         ubicacionEquipos = {p["id"]: p["ubicacion_original"] for p in ubicacionEquipos_data}
 
         historial = {
-            'preventivo': preventivo,
+            # 'preventivo': preventivo,
             'correctivo': correctivo
         }
 
-        return render_template('historialMantenimientoTecnologia.html', historial=historial, proveedores=proveedores, personas=personas, ubicacionEquipos=ubicacionEquipos)
+        return render_template('historialCorrectivoTecnologia.html', historial=historial, proveedores=proveedores, personas=personas, ubicacionEquipos=ubicacionEquipos)
 
     except Exception as e:
         print(f"Error al obtener el historial: {str(e)}")
@@ -1151,7 +1186,7 @@ def update_historial_mantenimiento_preventivo():
 
    # Si el id del último registro coincide con el seleccionado, permitir la actualización
     if last_record and last_record['id'] == int(id):
-        # Actualizar en historial_fechas
+        # Actualiza
         cur = db.connection.cursor()
         cur.execute("""UPDATE tecnologia_historial_preventivo SET fecha_mantenimiento = %s, 
                        vencimiento_mantenimiento = %s, periodicidad = %s WHERE id = %s""", 
@@ -1178,7 +1213,7 @@ def update_historial_mantenimiento_preventivo():
         # Si no es el último registro, mostrar un mensaje de error
         flash('Solo se puede actualizar el último registro de este equipo.', 'danger')
     
-    return redirect(url_for('historialMantenimientoTecnologia', cod_articulo=cod_articulo))
+    return redirect(url_for('historialPreventivoTecnologia', cod_articulo=cod_articulo))
 
 # ACTUALIZAR FECHAS DE HISTORIAL MENTENIMIENTO CORRECTIVO
 @app.route('/update_historialMantenimientoCorrectivo', methods=['POST'])
@@ -1198,7 +1233,7 @@ def update_historial_mantenimiento_correctivo():
 
    # Si el id del último registro coincide con el seleccionado, permitir la actualización
     if last_record and last_record['id'] == int(id):
-        # Actualizar en historial_fechas
+        # Actualizar
         cur = db.connection.cursor()
         cur.execute(""" UPDATE tecnologia_historial_correctivo SET fecha_calibracion = %s, 
                         vencimiento_calibracion = %s, periodicidad_calibracion = %s WHERE id = %s""", 
@@ -1210,7 +1245,7 @@ def update_historial_mantenimiento_correctivo():
         # Si no es el último registro, mostrar un mensaje de error
         flash('Solo se puede actualizar el último registro de este equipo.', 'danger')
     
-    return redirect(url_for('historialMantenimientoTecnologia', cod_articulo=cod_articulo))
+    return redirect(url_for('historialCorrectivoTecnologia', cod_articulo=cod_articulo))
 
 # ======================================================================================================
 # ==========================INICIA FUNCIÓN OTROS EQUIPOS DE TECNOLOGIA=====================
@@ -1561,29 +1596,81 @@ def insert_csv(modulo):
 @app.route('/exportCsvsalud')
 @login_required
 def exportCsv():
-    # Obtener los datos de la tabla indexssalud
     cur = db.connection.cursor()
-    cur.execute("""SELECT i.cod_articulo, i.nombre_equipo, i.periodicidad, i.fecha_mantenimiento, i.vencimiento_mantenimiento, i.periodicidad_calibracion, 
-                    i.fecha_calibracion, i.vencimiento_calibracion, i.fecha_ingreso, i.estado_equipo, i.ubicacion_original, i.garantia, i.criticos, 
-                    p.nombre_empresa AS proveedor_responsable, i.checkbox_mantenimiento, i.checkbox_calibracion, i.especificaciones_instalacion,
-                    i.cuidados_basicos, i.marca_equipo_salud, i.modelo_equipo_salud, i.serial_equipo_salud FROM indexssalud i LEFT JOIN datosproveedorsalud p ON i.proveedor_responsable = p.id
-                    WHERE i.enable = 1""")
-    registros = cur.fetchall()
 
-    # Crear un archivo CSV en memoria
+    # Consulta SQL optimizada con JOINs correctos y alias claros
+    cur.execute("""
+        SELECT 
+            i.cod_articulo,
+            i.nombre_equipo,
+            i.fecha_ingreso,
+            i.fecha_mantenimiento,
+            i.vencimiento_mantenimiento,
+            i.fecha_calibracion,
+            i.vencimiento_calibracion,
+            i.estado_equipo,
+            u.ubicacion_original AS proceso,
+            i.marca_equipo_tecnologia,
+            i.modelo_equipo_tecnologia,
+            i.serial_equipo_tecnologia,
+            i.ram,
+            i.disco,
+            i.tipo_equipo,
+            i.software_instalado,
+            t.nombre_tecnico AS proveedor_responsable,
+            q.documento_identidad AS id_persona_responsable,
+            p.nombre_contratista AS id_persona_responsable,
+            i.enable
+        FROM tecnologia_equipos i
+        LEFT JOIN tecnologia_tecnico_responsable t ON i.proveedor_responsable = t.id
+        LEFT JOIN tecnologia_persona_responsable q ON i.id_persona_responsable = q.id
+        LEFT JOIN tecnologia_persona_responsable p ON i.id_persona_responsable = p.id
+        LEFT JOIN tecnologia_ubicacion_equipos u ON i.ubicacion_original = u.id
+        WHERE i.otros_equipos_tecnologia = 0
+        ORDER BY i.cod_articulo ASC
+    """)
+
+    registros = cur.fetchall()
+    cur.close()
+
+    # Crear el archivo CSV en memoria
     si = StringIO()
     writer = csv.writer(si)
 
-    # Escribir los encabezados de las columnas
-    writer.writerow(['Código articulo', 'Nombre Equipo', 'Periodicidad Mantenimiento', 'Inicio Mantenimiento', 'Vencimiento Mantenimiento', 'Periodicidad Calibración', 'Inicio Calibración', 'Vencimiento Calibración', 'Fecha Ingreso', 
-                      'Estado Equipo', 'Ubicación Original', 'Garantía Ingreso', 'Críticos', 'Proveedor Responsable', 'Check Mantenimiento', 'Check Calibración', 'Especificaciones Instalación', 'Cuidados Básicos', ' Marca Equipo', 'Modelo Equipo', 'Serial Equipo'])
+    # Encabezados claros y ordenados
+    encabezados = [
+        'Código Equipo',
+        'Nombre Equipo',
+        'Fecha Ingreso',
+        'Fecha Ejecución Preventivo',
+        'Fecha Vencimiento Preventivo',
+        'Fecha Ejecución Correctivo',
+        'Fecha Vencimiento Correctivo',
+        'Estado Equipo',
+        'Proceso',
+        'Marca Equipo',
+        'Modelo Equipo',
+        'Serial Equipo',
+        'Memoria RAM',
+        'Disco Duro',
+        'Tipo Equipo',
+        'Software Instalado',
+        'Técnico Responsable',
+        'ID Responsable del Equipo',
+        'Nombre Responsable del Equipo',
+        'Estdo Equipo'
+    ]
+    writer.writerow(encabezados)
 
     # Escribir los registros de la tabla
     for registro in registros:
         writer.writerow(registro)
 
-    # Preparar el archivo CSV para su descarga
-    salida = Response(si.getvalue().encode('utf-8-sig'), mimetype='text/csv')
+    # Preparar la respuesta de descarga
+    salida = Response(
+        si.getvalue().encode('utf-8-sig'),
+        mimetype='text/csv'
+    )
     salida.headers['Content-Disposition'] = 'attachment; filename=equiposSalud.csv'
 
     return salida

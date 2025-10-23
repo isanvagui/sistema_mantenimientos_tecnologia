@@ -61,54 +61,61 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for registro in historial.preventivo %}                            
-                            <form method="POST" action="{{ url_for('update_historial_mantenimiento_preventivo') }}">
+                               {% for registro in historial.preventivo | sort(attribute='id', reverse=False) %}
                                 <tr>
-                                    <td>{{ registro.cod_articulo}}</td>
+                                    <td>{{ registro.cod_articulo }}</td>
+
                                     <td>
                                         {{ registro.nombre_equipo }}
                                         <input type="hidden" name="nombre_equipo" value="{{ registro.nombre_equipo }}">
                                     </td>
+
                                     <td>
                                         {% if registro.ubicacion_original in ubicacionEquipos %}
-                                        {{ ubicacionEquipos[registro.ubicacion_original] }}
+                                            {{ ubicacionEquipos[registro.ubicacion_original] }}
                                         {% else %}
                                             <span class="text-muted">Sin ubicación</span>
-                                        {% endif %}   
+                                        {% endif %}
                                     </td>
+
                                     <td>Preventivo</td>
-                                    <td><input type="text" name="periodicidad" value="{{ registro.periodicidad }}"></td>
-                                    <td><input type="date" name="vencimiento_mantenimiento" value="{{ registro.vencimiento_mantenimiento }}"></td>
 
                                     <td>
-                                        {% if registro.id_proveedor_responsable in proveedores%}
+                                        <input type="text" name="periodicidad" value="{{ registro.periodicidad }}">
+                                    </td>
 
-                                        {{ proveedores[registro.id_proveedor_responsable] }}
+                                    <td>
+                                        <input type="date" name="vencimiento_mantenimiento" value="{{ registro.vencimiento_mantenimiento }}">
+                                    </td>
+
+                                    <td>
+                                        {% if registro.id_proveedor_responsable in proveedores %}
+                                            {{ proveedores[registro.id_proveedor_responsable] }}
                                         {% else %}
                                             <span class="text-muted">Sin proveedor</span>
                                         {% endif %}
                                     </td>
-                                    
+
                                     <td>
                                         {% if registro.id_persona_responsable in personas %}
-                                        <div class="btn-eliminar"> 
-                                            <a href="{{ url_for('DATOS_PERSONA_TECNOLOGIA', id=registro.id_persona_responsable) }}" class="btn btn-update-data btn-sm"">
-                                                <FONT SIZE=2>datos</FONT>
-                                            </a> 
-                                        </div>
+                                            <div class="btn-eliminar">
+                                                <a href="{{ url_for('DATOS_PERSONA_TECNOLOGIA', id=registro.id_persona_responsable) }}" 
+                                                class="btn btn-update-data btn-sm">
+                                                    <small>Datos</small>
+                                                </a>
+                                            </div>
                                         {% else %}
-                                            <span class="text-muted">Sin proveedor</span>
-                                        {% endif %}    
+                                            <span class="text-muted">Sin responsable</span>
+                                        {% endif %}
                                     </td>
 
                                     <td class="col-md-3">
-                                        {{ registro.observaciones }}
+                                        {{ registro.observaciones or '' }}
                                         <input type="hidden" name="observaciones" value="{{ registro.observaciones }}">
                                     </td>
-                                </tr>    
-                            </form>
+                                </tr>
                             {% endfor %}
-                            <!-- Mostrar registros de correctivo -->
+                            <!-- Mostrar registros de correctivo
                             {% for registro in historial.correctivo %}                            
                             <form method="POST" action="{{ url_for('update_historial_mantenimiento_correctivo') }}">
                                 <tr>
@@ -157,7 +164,7 @@
                                     </td>
                                 </tr>    
                             </form>                            
-                            {% endfor %}
+                            {% endfor %} -->
                         </tbody>
                     </table>
                 </div>

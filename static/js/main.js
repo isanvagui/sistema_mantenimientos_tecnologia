@@ -13,7 +13,7 @@ if (btnGuardar) {
     const nuevaPeriodicidad = document.getElementById('nuevaPeriodicidad').value
 
     if (!proveedorId) {
-        alert('Debe seleccionar un proveedor responsable');
+        alert('Debe seleccionar un tecnico responsable');
         return;
     }
 
