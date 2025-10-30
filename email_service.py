@@ -21,7 +21,7 @@ def send_email_with_logo(subject, body_html, recipients):
     <div style="display: flex; align-items: center; justify-content: flex-start;">
         <img src="cid:logo" alt="Logo" style="height: 100px; margin-right: 15px;">
         <span style="font-weight: bold; font-size: 14px;">
-            Notificaciones Laboratorios<br>
+            Notificaciones<br>
             I.U Colegio Mayor de Antioquia<br>
             Cra 78 Nº 65 - 46 Robledo
         </span>
@@ -62,34 +62,40 @@ def send_email_with_logo(subject, body_html, recipients):
         print(f"❌ Error enviando correo: {e}")
 
 
-def send_prestamo_notification_html(
-    cod_articulo, nombre_equipo, quien_entrega, ubicacion_original, email_entrega,
-    quien_recibe, ubicacion_destino, email_recibe, fecha_prestamo
+def send_mantenimiento_notification_html(
+    cod_articulo, nombre_equipo, nombre_tecnico, ubicacion_original,
+    persona_responsable, email_recibe, fecha_mantenimiento, tipo_mantenimiento
 ):
     """
     Construye el HTML del préstamo y lo envía a ambas partes.
     """
-    subject = f"Préstamo de equipo: {nombre_equipo}"
+    tipo = "Preventivo" if tipo_mantenimiento == "fecha_mantenimiento" else "Correctivo"
+    subject = f"Mantenimiento de equipo: {nombre_equipo}"
 
     # HTML del cuerpo (sin firma)
     body_html = f"""
     <p>Hola,</p>
-    <p>Se ha registrado un préstamo de equipo en el sistema GestionLab de los laboratorios de la Institución Universitaria Colegio Mayor de Antioquia con los siguientes datos:</p>
+    <p>Se ha registrado un mantenimiento <b>{tipo}</b> en el sistema <b>Mantenimientos Tecnología</b> con la siguiente información:</p>
     <ul>
-        <li><b>📦 Equipo:</b> {nombre_equipo} (Placa: {cod_articulo})</li>
-        <li><b>👤 Entregado por:</b> {quien_entrega}</li>
-        <li><b>📍 Ubicación original:</b> {ubicacion_original}</li>
-        <li><b>👤 Recibido por:</b> {quien_recibe}</li>
-        <li><b>📍 Ubicación destino:</b> {ubicacion_destino}</li>
-        <li><b>📅 Fecha de préstamo:</b> {fecha_prestamo}</li>
+        <li><b>🖥️ Equipo:</b> {nombre_equipo} (Placa: {cod_articulo})</li>
+        <li><b>👤 Tecnico responsable:</b> {nombre_tecnico}</li>
+        <li><b>📍 Ubicación del equipo:</b> {ubicacion_original}</li>
+        <li><b>👤 Responsable del equipo:</b> {persona_responsable}</li>
+        <li><b>🗓 Fecha de mantenimiento:</b> {fecha_mantenimiento}</li>
     </ul>
+    <p>Prevención instalación de software no autorizado dan cumplimiento a la Resolución No. 
+    163 del 18 de mayo de 2023 por medio de la cual se actualizan los lineamientos de Tecnología e informática 
+    en la Institución Universitaria Colegio Mayor de Antioquia:    
+    </p>
+    <p><b>ARTÍCULO 23. USO GENERAL:</b> “Queda estrictamente prohibido inspeccionar, copiar y almacenar programas de cómputo, software y demás fuentes que violen las leyes de derechos de autor.”</p>
+    
+    <p><b>ARTÍCULO 33. INSTALACIÓN Y DESINSTALACIÓN:</b> “La instalación y desinstalación de programas es facultad exclusiva del personal de Informática.”</p>
+
+    <p><b>ARTICULO 34 DERECHOS DE AUTOR:</b> “Queda estrictamente prohibido instalar, copiar y almacenar software que viole la ley de derechos de autor.”</p>
+
+    <p><b>Aviso:</b> Este correo ha sido generado automáticamente. Por favor no responda a este mensaje.</p>
+    
     <p>Por favor conservar este correo como comprobante.</p>
     """
 
-    send_email_with_logo(subject, body_html, [email_entrega, email_recibe])
-# =====================================================================================================
-
-# ==============================FUNCIÓN PARA CORREO DE DEVOLUCIÓN =========================================
-
-
-# =====================================================================================================
+    send_email_with_logo(subject, body_html, [email_recibe])

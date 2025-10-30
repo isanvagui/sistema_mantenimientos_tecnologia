@@ -35,10 +35,10 @@ from flask import Flask, render_template, request, jsonify
 from flask_login import current_user
 # Importaciones desde el archivo email_service
 from email_service import send_email_with_logo
-from email_service import send_prestamo_notification_html
+from email_service import send_mantenimiento_notification_html
 # Importaciones desde el archivo email_devolucion
-from email_devolucion import send_email_envio_with_logo
-from email_devolucion import send_devolucion_notification_html
+# from email_devolucion import send_email_envio_with_logo
+# from email_devolucion import send_devolucion_notification_html
 
 app = Flask(__name__)
 app.config.from_object(config['development'])
@@ -263,7 +263,7 @@ def indexTecnologia():
     cur.execute('SELECT id, nombre_tecnico FROM tecnologia_tecnico_responsable')
     proveedores = cur.fetchall()
 
-    cur.execute('SELECT id, documento_identidad FROM tecnologia_persona_responsable')
+    cur.execute('SELECT id, documento_identidad, nombre_contratista FROM tecnologia_persona_responsable')
     personas = cur.fetchall()
 
     cur.execute('SELECT id, tipo_equipo FROM tecnologia_tipo_equipo')
@@ -601,6 +601,7 @@ def checkbox_programacion_mantenimiento_tecnologia():
         seleccionados = request.form.getlist('seleccionados[]')
         proveedor_id = request.form.get('proveedor_id')
         persona_id = request.form.get('persona_id')
+        ubicacion_id = request.form.get('ubicacion_id')
 
         if not seleccionados or not proveedor_id:
             return jsonify({'success': False, 'message': 'Faltan productos seleccionados o proveedor.'})
@@ -612,7 +613,7 @@ def checkbox_programacion_mantenimiento_tecnologia():
 
         for cod in seleccionados:
             nombre_equipo = request.form.get(f'nombre_equipo_{cod}')
-            ubicacion = request.form.get(f'ubicacion_{cod}')
+            # ubicacion_id = request.form.get(f'ubicacion_{cod}')
             periodicidad_m = request.form.get(f'periodicidad_mantenimiento_{cod}')
             periodicidad_c = request.form.get(f'periodicidad_calibracion_{cod}')
 
@@ -631,7 +632,7 @@ def checkbox_programacion_mantenimiento_tecnologia():
                 # Validación de vencimiento
                 if vencimiento_m and (vencimiento_m - hoy).days < 30:
                     continue
-                # Activar checkbox y guardar en historial
+                # Activar checkbox y guardar en historial preventivo
                 cur.execute(
                     "UPDATE tecnologia_equipos SET checkbox_mantenimiento = 'Activo' WHERE cod_articulo = %s",
                     (cod,),
@@ -643,7 +644,7 @@ def checkbox_programacion_mantenimiento_tecnologia():
                     (
                         cod,
                         nombre_equipo,
-                        ubicacion,
+                        ubicacion_id,
                         fecha_m,
                         vencimiento_m,
                         periodicidad_m,
@@ -656,6 +657,7 @@ def checkbox_programacion_mantenimiento_tecnologia():
             if calibracion_activada:
                 if vencimiento_c and (vencimiento_c - hoy).days < 30:
                     continue
+                # Activar checkbox y guardar en historial correctivo
                 cur.execute(
                     "UPDATE tecnologia_equipos SET checkbox_calibracion = 'Activo' WHERE cod_articulo = %s",
                     (cod,),
@@ -667,7 +669,7 @@ def checkbox_programacion_mantenimiento_tecnologia():
                     (
                         cod,
                         nombre_equipo,
-                        ubicacion,
+                        ubicacion_id,
                         fecha_c,
                         vencimiento_c,
                         periodicidad_c,
@@ -688,6 +690,40 @@ def checkbox_programacion_mantenimiento_tecnologia():
     except Exception as e:
         db.connection.rollback()
         return jsonify({'success': False, 'message': f'Error en el servidor: {str(e)}'})
+
+# OBTIENE LOS DATOS DEL RESPONSABLE DEL EQUIPO Y LLENA LOS CAMPOS DE PERSONA RESPONSABLE Y PROCESO DEL MODAL
+@app.route('/get_datos_persona/<id>', methods=['GET'])
+def get_datos_persona(id):
+    try:
+        cur = db.connection.cursor(MySQLdb.cursors.DictCursor)
+
+        cur.execute("""
+            SELECT 
+                p.id AS persona_id,
+                p.nombre_contratista,
+                u.id AS ubicacion_id,
+                u.ubicacion_original
+            FROM tecnologia_equipos e
+            LEFT JOIN tecnologia_persona_responsable p 
+                ON e.id_persona_responsable = p.id
+            LEFT JOIN tecnologia_ubicacion_equipos u 
+                ON e.ubicacion_original = u.id
+            WHERE e.cod_articulo = %s
+            LIMIT 1
+        """, (id,))
+
+        data = cur.fetchone()
+        cur.close()
+
+        if data:
+            return jsonify({'success': True, **data})
+        else:
+            return jsonify({'success': False, 'message': 'No se encontraron datos.'})
+
+    except Exception as e:
+        print(f"⚠️ Error en get_datos_persona: {e}")
+        return jsonify({'success': False, 'message': 'Error al obtener datos.'})
+
     
 # ACTUALIZA EL ESTADO DEL EQUIPO DESDE EL DESPLEGABLE QUE SE ENCUENTRA EN LA MISMA TABLA INDEXSALUD
 @app.route('/update_estadoEquipoTecnologia', methods=['POST'])
@@ -827,6 +863,7 @@ def guardar_historial_tecnologia():
     ubicacion_id = data.get('ubicacionId')
     observaciones_id = data.get('observacionesId')
     nueva_fecha_str = data.get('nuevaFecha')
+    correo_externo = data.get('correoExterno')
     registros = data.get('registros', [])
 
     try:
@@ -836,8 +873,19 @@ def guardar_historial_tecnologia():
         nueva_fecha = datetime.strptime(nueva_fecha_str, '%Y-%m-%d')
         cur = db.connection.cursor()
 
+        # --- Obtener nombres descriptivos ---
+        cur.execute("SELECT nombre_tecnico FROM tecnologia_tecnico_responsable WHERE id = %s", (proveedor_id,))
+        nombre_tecnico = (cur.fetchone() or [None])[0] or "No asignado"
+
+        cur.execute("SELECT ubicacion_original FROM tecnologia_ubicacion_equipos WHERE id = %s", (ubicacion_id,))
+        ubicacion_nombre = (cur.fetchone() or [None])[0] or "Sin ubicación"
+
+        cur.execute("SELECT nombre_contratista FROM tecnologia_persona_responsable WHERE id = %s", (persona_id,))
+        persona_nombre = (cur.fetchone() or [None])[0] or "No asignado"
+
+
         for r in registros:
-            tipo = r.get('tipo')  # fecha_mantenimiento o fecha_calibracion
+            tipo = r.get('tipo')  # fecha_preventivo o fecha_correctivo
             producto_id = r.get('productoId')
             nueva_periodicidad = int(data.get('nuevaPeriodicidad', 0))
             nombre_equipo = r.get('nombreEquipo')
@@ -914,6 +962,18 @@ def guardar_historial_tecnologia():
                 )
 
         db.connection.commit()
+
+        send_mantenimiento_notification_html(
+            nombre_equipo=nombre_equipo,
+            cod_articulo=producto_id,
+            nombre_tecnico=nombre_tecnico,  # puedes obtenerlo con una consulta
+            ubicacion_original=ubicacion_nombre,  # idem, desde ubicacion_id
+            persona_responsable=persona_nombre,   # desde persona_id
+            # observaciones=observaciones_id,
+            email_recibe=correo_externo,
+            fecha_mantenimiento=nueva_fecha.strftime("%Y-%m-%d"),
+            tipo_mantenimiento=tipo
+        )
         return jsonify({'success': True, 'message': 'Fechas y registros actualizados correctamente.'})
 
     except Exception as e:

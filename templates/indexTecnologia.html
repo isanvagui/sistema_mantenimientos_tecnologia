@@ -188,14 +188,13 @@
                     </div>
                 </form>
             </div>
-
             <!-- Modal Para Actualización de Fechas y Guardado de Historial-->
-            <div class="modal fade" id="modalOpciones" tabindex="-1" aria-labelledby="modalOpcionesLabel" aria-hidden="true">
+            <div class="modal fade" id="modalGuardar" tabindex="-1" aria-labelledby="modalGuardarLabel" aria-hidden="true">
                 <div class="modal-dialog modal-lg">
                     <div class="modal-content">
                     
                     <div class="modal-header">
-                        <h5 class="modal-title" id="modalOpcionesLabel">Programar Mantenimiento y Guarda en el Historial</h5>
+                        <h5 class="modal-title" id="modalGuardarLabel">Programar Mantenimiento y Guarda en el Historial</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                     </div>
 
@@ -212,13 +211,14 @@
                                 {% endfor %}
                             </select>
                             </div>
+                            
                             <!-- Selector de persona responable -->
                             <div class="col-md-4">
                             <label for="selectPersona" class="form-label">Persona responsable del equipo</label>
                             <select name="persona_id" id="selectPersona" class="form-control" required>
                                 <option value="" disabled selected>Seleccione persona</option>
                                 {% for persona in personas %}
-                                <option value="{{ persona.id }}">{{ persona.documento_identidad }}</option>
+                                <option value="{{ persona.id }}">{{ persona.nombre_contratista }}</option>
                                 {% endfor %}
                             </select>
                             </div>
@@ -235,6 +235,9 @@
                                 {% endfor %}
                             </select>
                             </div>
+                            
+                            <!-- Campo oculto para los equipos seleccionados -->
+                            <input type="hidden" name="seleccionados[]" id="equiposSeleccionados">
 
                             <!-- Observaciones -->
                             <div class="col-md-4">
@@ -253,6 +256,12 @@
                             <label for="nuevaFecha" class="form-label">Fecha de ejecución</label>
                             <input type="date" id="nuevaFecha" class="form-control" required>
                             </div>
+                            
+                            <!-- Correo -->
+                            <div class="col-md-4">
+                            <label for="inputCorreo" class="form-label">Correo de quien recibe:</label>
+                            <input type="email" class="form-control" id="inputCorreo" name="correoDestino" required>
+                            </div>
                         </div>
                         </form>
                     </div>
@@ -265,6 +274,7 @@
                     </div>
                 </div>
             </div>
+
 
 
             <!-- Tabla de visualización de productos -->
@@ -329,9 +339,7 @@
                                     </td>
                                     <td>
                                         <span>{{ producto.fecha_calibracion }}</span>
-                                        <br>
-                                        <br>
-                                        <span>{{ producto.vencimiento_calibracion }}</span>
+                                        <!-- <span>{{ producto.vencimiento_calibracion }}</span> -->
                                         <input type="hidden"
                                             name="seleccionCalibracion"
                                             class="form-control fecha-vencimiento-calibracion"
@@ -414,7 +422,7 @@
                         </table>
                     </div>
                 </div>
-            </div>   
+            </div>
             <!-- Modal de Préstamo -->
             <div class="modal fade" id="modalPrestamo" tabindex="-1" aria-labelledby="modalPrestamoLabel" aria-hidden="true">
             <div class="modal-dialog modal-lg">
