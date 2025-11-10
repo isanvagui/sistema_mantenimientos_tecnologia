@@ -24,7 +24,7 @@
                     <div class="modal-body">
                         <form id="form-checkbox-programacion" method="POST">
                         <div class="row g-3">
-                            <!-- Selector de proveedor -->
+                            <!-- Selector de tecnico -->
                             <div class="col-md-4">
                             <label for="selectProveedor" class="form-label">Tecnico responsable</label>
                             <select name="proveedor_id" id="selectProveedor" class="form-control" required>
@@ -40,7 +40,7 @@
                             <select name="persona_id" id="selectPersona" class="form-control" required>
                                 <option value="" disabled selected>Seleccione persona</option>
                                 {% for persona in personas %}
-                                <option value="{{ persona.id }}">{{ persona.documento_identidad }}</option>
+                                <option value="{{ persona.id }}">{{ persona.nombre_contratista }}</option>
                                 {% endfor %}
                             </select>
                             </div>
@@ -74,6 +74,12 @@
                             <div class="col-md-3">
                             <label for="nuevaFecha" class="form-label">Fecha de ejecución</label>
                             <input type="date" id="nuevaFecha" class="form-control" required>
+                            </div>
+                            
+                            <!-- Fecha -->
+                            <div class="col-md-4">
+                            <label for="inputCorreo" class="form-label">Correo de quien recibe:</label>
+                            <input type="email" class="form-control" id="inputCorreo" name="correoDestino" required="">
                             </div>
                         </div>
                         </form>

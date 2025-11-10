@@ -1320,7 +1320,7 @@ def index_otros_equipos_tecnologia():
     cur.execute('SELECT id, nombre_tecnico FROM tecnologia_tecnico_responsable')
     proveedores = cur.fetchall()
 
-    cur.execute('SELECT id, documento_identidad FROM tecnologia_persona_responsable')
+    cur.execute('SELECT id, documento_identidad, nombre_contratista FROM tecnologia_persona_responsable')
     personas = cur.fetchall()
 
     cur.execute('SELECT id, tipo_equipo FROM tecnologia_tipo_equipo')
