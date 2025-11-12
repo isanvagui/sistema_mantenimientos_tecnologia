@@ -1395,265 +1395,265 @@ def index_modulo(modulo):
 
     
 # ---------------------------FUNCION PARA CARGAR IMAGEN DEL EQUIPO DESDE LA TABLA indexSalud EN EL CAMPO ACCIONES SUBIR_IMAGEN-----------------------------  
-@app.route('/subir_imagen/<int:id_producto>', methods=['POST'])
-def subir_imagen(id_producto, modulo):
-    if 'imagen_producto' not in request.files:
-        flash('No se seleccionó ningún archivo', 'error')
-        return redirect(url_for('index_modulo', modulo=modulo))
+# @app.route('/subir_imagen/<int:id_producto>', methods=['POST'])
+# def subir_imagen(id_producto, modulo):
+#     if 'imagen_producto' not in request.files:
+#         flash('No se seleccionó ningún archivo', 'error')
+#         return redirect(url_for('index_modulo', modulo=modulo))
 
-    file = request.files['imagen_producto']
-    if file.filename == '':
-        flash('Por favor seleccione un archivo válido', 'error')
-        return redirect(url_for('index_modulo', modulo=modulo))
+#     file = request.files['imagen_producto']
+#     if file.filename == '':
+#         flash('Por favor seleccione un archivo válido', 'error')
+#         return redirect(url_for('index_modulo', modulo=modulo))
     
-    # Validar extensión
-    if not file.filename.lower().endswith(('.png', '.jpg', '.jpeg')):
-        flash('Solo se permiten archivos PNG, JPG', 'error')
-        return redirect(url_for('index_modulo', modulo=modulo))
+#     # Validar extensión
+#     if not file.filename.lower().endswith(('.png', '.jpg', '.jpeg')):
+#         flash('Solo se permiten archivos PNG, JPG', 'error')
+#         return redirect(url_for('index_modulo', modulo=modulo))
 
-    if file:
-        filename = secure_filename(file.filename)
-        filepath_to_db_img = os.path.join('fotos', filename).replace("\\", "/")
-        ruta_absoluta = os.path.join(app.root_path, 'static', filepath_to_db_img)
+#     if file:
+#         filename = secure_filename(file.filename)
+#         filepath_to_db_img = os.path.join('fotos', filename).replace("\\", "/")
+#         ruta_absoluta = os.path.join(app.root_path, 'static', filepath_to_db_img)
 
-        # Guardar en disco
-        file.save(ruta_absoluta)
+#         # Guardar en disco
+#         file.save(ruta_absoluta)
 
-        # Actualizar en BD
-        cur = db.connection.cursor()
-        cur.execute("""
-            UPDATE indexssalud 
-            SET imagen = %s 
-            WHERE id = %s
-        """, (filepath_to_db_img, id_producto))
-        db.connection.commit()
-        cur.close()
+#         # Actualizar en BD
+#         cur = db.connection.cursor()
+#         cur.execute("""
+#             UPDATE indexssalud 
+#             SET imagen = %s 
+#             WHERE id = %s
+#         """, (filepath_to_db_img, id_producto))
+#         db.connection.commit()
+#         cur.close()
 
-        flash('Imagen cargada correctamente', 'success')
-        return redirect(url_for('index_modulo', modulo='modulo'))
+#         flash('Imagen cargada correctamente', 'success')
+#         return redirect(url_for('index_modulo', modulo='modulo'))
 
 # ---------------------------FUNCION PARA CARGAR PDFS DEL EQUIPO DESDE LA TABLA indexSalud EN EL CAMPO ACCIONES SUBIR_GUIA---------------------------- 
-@app.route('/subir_pdf/<int:id_producto>', methods=['POST'])
-def subir_pdf(id_producto, modulo):
-    if 'pdf_salud' not in request.files:
-        flash('No se seleccionó ningún archivo', 'error')
-        return redirect(url_for('index_modulo', modulo=modulo))
+# @app.route('/subir_pdf/<int:id_producto>', methods=['POST'])
+# def subir_pdf(id_producto, modulo):
+#     if 'pdf_salud' not in request.files:
+#         flash('No se seleccionó ningún archivo', 'error')
+#         return redirect(url_for('index_modulo', modulo=modulo))
 
-    file = request.files['pdf_salud']
-    if file.filename == '':
-        flash('Por favor seleccione un archivo válido', 'error')
-        return redirect(url_for('index_modulo', modulo=modulo))
+#     file = request.files['pdf_salud']
+#     if file.filename == '':
+#         flash('Por favor seleccione un archivo válido', 'error')
+#         return redirect(url_for('index_modulo', modulo=modulo))
 
-    # Validar extensión
-    if not file.filename.lower().endswith('.pdf'):
-        flash('Solo se permiten archivos PDF', 'error')
-        return redirect(url_for('index_modulo', modulo=modulo))
+#     # Validar extensión
+#     if not file.filename.lower().endswith('.pdf'):
+#         flash('Solo se permiten archivos PDF', 'error')
+#         return redirect(url_for('index_modulo', modulo=modulo))
 
-    # Guardar archivo
-    filename = secure_filename(file.filename)
-    filepath_to_db_pdf = os.path.join('pdf', filename).replace("\\", "/")
-    ruta_absoluta = os.path.join(app.root_path, 'static', filepath_to_db_pdf)
-    file.save(ruta_absoluta)
+#     # Guardar archivo
+#     filename = secure_filename(file.filename)
+#     filepath_to_db_pdf = os.path.join('pdf', filename).replace("\\", "/")
+#     ruta_absoluta = os.path.join(app.root_path, 'static', filepath_to_db_pdf)
+#     file.save(ruta_absoluta)
 
-    # Actualizar en BD (columna ejemplo: pdf_salud)
-    cur = db.connection.cursor()
-    cur.execute("""
-        UPDATE indexssalud 
-        SET pdf_salud = %s 
-        WHERE id = %s
-    """, (filepath_to_db_pdf, id_producto))
-    db.connection.commit()
-    cur.close()
+#     # Actualizar en BD (columna ejemplo: pdf_salud)
+#     cur = db.connection.cursor()
+#     cur.execute("""
+#         UPDATE indexssalud 
+#         SET pdf_salud = %s 
+#         WHERE id = %s
+#     """, (filepath_to_db_pdf, id_producto))
+#     db.connection.commit()
+#     cur.close()
 
-    flash('Guia cargada correctamente', 'success')
-    return redirect(url_for('index_modulo', modulo='modulo'))
+#     flash('Guia cargada correctamente', 'success')
+#     return redirect(url_for('index_modulo', modulo='modulo'))
 
 # ---------------------------INICIA INSERT MASIVO DE EQUIPOS CSV DE SALUD-----------------------------
-@app.route('/insert_csv', methods=['POST'])
-def insert_csv(modulo):
-    if request.method == 'POST':
-        file = request.files['file']
-        if not file:
-            flash('No seleccionó ningún archivo')
-            return redirect(url_for('index_modulo', modulo=modulo))
+# @app.route('/insert_csv', methods=['POST'])
+# def insert_csv(modulo):
+#     if request.method == 'POST':
+#         file = request.files['file']
+#         if not file:
+#             flash('No seleccionó ningún archivo')
+#             return redirect(url_for('index_modulo', modulo=modulo))
 
-        file = TextIOWrapper(file, encoding='latin-1')
-        csv_reader = csv.reader(file)
-        next(csv_reader)  # Saltar encabezado
+#         file = TextIOWrapper(file, encoding='latin-1')
+#         csv_reader = csv.reader(file)
+#         next(csv_reader)  # Saltar encabezado
 
-        cur = db.connection.cursor()
-        fotos_folder = os.path.join(os.path.dirname(__file__), 'static', 'fotos')
+#         cur = db.connection.cursor()
+#         fotos_folder = os.path.join(os.path.dirname(__file__), 'static', 'fotos')
 
-        codigos_duplicados = []
-        datos_validos = []
+#         codigos_duplicados = []
+#         datos_validos = []
 
-        for row in csv_reader:
-            cod_articulo = row[0]
+#         for row in csv_reader:
+#             cod_articulo = row[0]
 
-            try:
-                cod_articulo = int(cod_articulo)
-            except ValueError:
-                flash(f'Código inválido: {cod_articulo}', 'error')
-                continue  # Salta esta fila
+#             try:
+#                 cod_articulo = int(cod_articulo)
+#             except ValueError:
+#                 flash(f'Código inválido: {cod_articulo}', 'error')
+#                 continue  # Salta esta fila
 
-            cur.execute("SELECT cod_articulo FROM indexssalud WHERE cod_articulo = %s", (cod_articulo,))
-            codigo_indexsalud = cur.fetchone()
+#             cur.execute("SELECT cod_articulo FROM indexssalud WHERE cod_articulo = %s", (cod_articulo,))
+#             codigo_indexsalud = cur.fetchone()
 
-            cur.execute("SELECT cod_articulo FROM equipossalud_debaja WHERE cod_articulo = %s", (cod_articulo,))
-            codigo_debaja = cur.fetchone()
+#             cur.execute("SELECT cod_articulo FROM equipossalud_debaja WHERE cod_articulo = %s", (cod_articulo,))
+#             codigo_debaja = cur.fetchone()
 
-            if codigo_indexsalud or codigo_debaja:
-                codigos_duplicados.append(str(cod_articulo))
-                continue  # Salta esta fila duplicada
+#             if codigo_indexsalud or codigo_debaja:
+#                 codigos_duplicados.append(str(cod_articulo))
+#                 continue  # Salta esta fila duplicada
 
-            # Verifica que la imagen exista
-            imagen = row[14]
-            imagen_path = os.path.join(fotos_folder, imagen)
-            if not os.path.isfile(imagen_path):
-                flash(f'Imagen no encontrada: {imagen}', 'error')
-                continue  # Salta esta fila
+#             # Verifica que la imagen exista
+#             imagen = row[14]
+#             imagen_path = os.path.join(fotos_folder, imagen)
+#             if not os.path.isfile(imagen_path):
+#                 flash(f'Imagen no encontrada: {imagen}', 'error')
+#                 continue  # Salta esta fila
 
-            # Validación básica de Mantenimiento Actual
-            if not row[7]:
-                flash(f'Equipo con código {cod_articulo} no tiene Mantenimiento Actual.', 'error')
-                continue
+#             # Validación básica de Mantenimiento Actual
+#             if not row[7]:
+#                 flash(f'Equipo con código {cod_articulo} no tiene Mantenimiento Actual.', 'error')
+#                 continue
             
-            # Validación básica de Vencimiento Mantenimiento
-            if not row[8]:
-                flash(f'Equipo con código {cod_articulo} no tiene Vencimiento Mantenimiento.', 'error')
-                continue
+#             # Validación básica de Vencimiento Mantenimiento
+#             if not row[8]:
+#                 flash(f'Equipo con código {cod_articulo} no tiene Vencimiento Mantenimiento.', 'error')
+#                 continue
 
-            # Validación básica de Periodicidad Calibración
-            if not row[9]:
-                flash(f'Equipo con código {cod_articulo} si no tiene periodicidad de calibracion, ingresa 0.', 'error')
-                continue
+#             # Validación básica de Periodicidad Calibración
+#             if not row[9]:
+#                 flash(f'Equipo con código {cod_articulo} si no tiene periodicidad de calibracion, ingresa 0.', 'error')
+#                 continue
 
-            # Preparar fila válida para insertar luego
-            datos_validos.append(row)
+#             # Preparar fila válida para insertar luego
+#             datos_validos.append(row)
 
-            # Se construye diccionario de proveedores, por nombre de empresa: id
-            cur.execute("SELECT id, nombre_empresa FROM datosproveedorsalud")
-            proveedores = cur.fetchall()
-            proveedor_map = {p[1].strip().lower(): p[0] for p in proveedores}
+#             # Se construye diccionario de proveedores, por nombre de empresa: id
+#             cur.execute("SELECT id, nombre_empresa FROM datosproveedorsalud")
+#             proveedores = cur.fetchall()
+#             proveedor_map = {p[1].strip().lower(): p[0] for p in proveedores}
 
-        # Insertar solo los datos válidos
-        for row in datos_validos:
-            cod_articulo = int(row[0])
-            nombre_equipo = row[1]
-            ubicacion_original = row[2]
-            estado_equipo = row[3]
-            fecha_ingreso = row[4]
-            garantia = row[5]
-            periodicidad = int(row[6])
-            fecha_mantenimiento = row[7]
-            vencimiento_mantenimiento = row[8]
-            periodicidad_calibracion = int(row[9])
-            fecha_calibracion = row[10] or None
-            vencimiento_calibracion = row[11] or None
-            criticos = row[12]
-            # proveedor_responsable = row[13]
-            nombre_proveedor = row[13].strip().lower()
-            proveedor_responsable = proveedor_map.get(nombre_proveedor)
+#         # Insertar solo los datos válidos
+#         for row in datos_validos:
+#             cod_articulo = int(row[0])
+#             nombre_equipo = row[1]
+#             ubicacion_original = row[2]
+#             estado_equipo = row[3]
+#             fecha_ingreso = row[4]
+#             garantia = row[5]
+#             periodicidad = int(row[6])
+#             fecha_mantenimiento = row[7]
+#             vencimiento_mantenimiento = row[8]
+#             periodicidad_calibracion = int(row[9])
+#             fecha_calibracion = row[10] or None
+#             vencimiento_calibracion = row[11] or None
+#             criticos = row[12]
+#             # proveedor_responsable = row[13]
+#             nombre_proveedor = row[13].strip().lower()
+#             proveedor_responsable = proveedor_map.get(nombre_proveedor)
 
-            if not proveedor_responsable:
-                flash(f"Proveedor '{row[13]}' no encontrado en la base de datos.", 'error')
-                continue
+#             if not proveedor_responsable:
+#                 flash(f"Proveedor '{row[13]}' no encontrado en la base de datos.", 'error')
+#                 continue
             
-            imagen = row[14]
-            especificaciones_instalacion = row[15]
-            cuidados_basicos = row[16]
-            marca_equipo_salud = row[17]
-            modelo_equipo_salud = row[18]
-            serial_equipo_salud = row[19]
+#             imagen = row[14]
+#             especificaciones_instalacion = row[15]
+#             cuidados_basicos = row[16]
+#             marca_equipo_salud = row[17]
+#             modelo_equipo_salud = row[18]
+#             serial_equipo_salud = row[19]
 
-            ruta_imagen_db = f'fotos/{secure_filename(imagen)}'
-            checkbox_mantenimiento = 'Inactivo'
-            checkbox_calibracion = 'Inactivo'
-            fecha_de_baja = date.today() if estado_equipo == "DE BAJA" else None
-            color = 'verde'
+#             ruta_imagen_db = f'fotos/{secure_filename(imagen)}'
+#             checkbox_mantenimiento = 'Inactivo'
+#             checkbox_calibracion = 'Inactivo'
+#             fecha_de_baja = date.today() if estado_equipo == "DE BAJA" else None
+#             color = 'verde'
 
-            if estado_equipo == 'DE BAJA':
-                # Insertar en la tabla equipossalud_debaja
-                cur.execute("""INSERT INTO equipossalud_debaja (cod_articulo, nombre_equipo, fecha_mantenimiento, vencimiento_mantenimiento, fecha_calibracion, vencimiento_calibracion, fecha_ingreso, 
-                                                                periodicidad, estado_equipo, ubicacion_original, garantia, criticos, proveedor_responsable, imagen, especificaciones_instalacion, cuidados_basicos, 
-                                                                periodicidad_calibracion, marca_equipo_salud, modelo_equipo_salud, serial_equipo_salud, color, checkbox_mantenimiento, checkbox_calibracion, fecha_de_baja) VALUES 
-                                                                (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
-                    (
-                        cod_articulo,
-                        nombre_equipo,
-                        fecha_mantenimiento,
-                        vencimiento_mantenimiento,
-                        fecha_calibracion,
-                        vencimiento_calibracion,
-                        fecha_ingreso,
-                        periodicidad,
-                        estado_equipo,
-                        ubicacion_original,
-                        garantia,
-                        criticos,
-                        proveedor_responsable,
-                        ruta_imagen_db,
-                        especificaciones_instalacion, 
-                        cuidados_basicos,
-                        periodicidad_calibracion,
-                        marca_equipo_salud,
-                        modelo_equipo_salud,
-                        serial_equipo_salud,
-                        color,
-                        checkbox_mantenimiento,
-                        checkbox_calibracion,
-                        fecha_de_baja,
-                    ),
-                )
-            else:
+#             if estado_equipo == 'DE BAJA':
+#                 # Insertar en la tabla equipossalud_debaja
+#                 cur.execute("""INSERT INTO equipossalud_debaja (cod_articulo, nombre_equipo, fecha_mantenimiento, vencimiento_mantenimiento, fecha_calibracion, vencimiento_calibracion, fecha_ingreso, 
+#                                                                 periodicidad, estado_equipo, ubicacion_original, garantia, criticos, proveedor_responsable, imagen, especificaciones_instalacion, cuidados_basicos, 
+#                                                                 periodicidad_calibracion, marca_equipo_salud, modelo_equipo_salud, serial_equipo_salud, color, checkbox_mantenimiento, checkbox_calibracion, fecha_de_baja) VALUES 
+#                                                                 (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+#                     (
+#                         cod_articulo,
+#                         nombre_equipo,
+#                         fecha_mantenimiento,
+#                         vencimiento_mantenimiento,
+#                         fecha_calibracion,
+#                         vencimiento_calibracion,
+#                         fecha_ingreso,
+#                         periodicidad,
+#                         estado_equipo,
+#                         ubicacion_original,
+#                         garantia,
+#                         criticos,
+#                         proveedor_responsable,
+#                         ruta_imagen_db,
+#                         especificaciones_instalacion, 
+#                         cuidados_basicos,
+#                         periodicidad_calibracion,
+#                         marca_equipo_salud,
+#                         modelo_equipo_salud,
+#                         serial_equipo_salud,
+#                         color,
+#                         checkbox_mantenimiento,
+#                         checkbox_calibracion,
+#                         fecha_de_baja,
+#                     ),
+#                 )
+#             else:
 
-                # Insertar en la tabla indexssalud
-                cur.execute("""INSERT INTO indexssalud (cod_articulo, nombre_equipo, fecha_mantenimiento, vencimiento_mantenimiento, fecha_calibracion, vencimiento_calibracion, fecha_ingreso, 
-                                                        periodicidad, estado_equipo, ubicacion_original, garantia, criticos, proveedor_responsable, imagen, especificaciones_instalacion, cuidados_basicos, 
-                                                        periodicidad_calibracion, marca_equipo_salud, modelo_equipo_salud, serial_equipo_salud, color, checkbox_mantenimiento, checkbox_calibracion, fecha_de_baja) VALUES 
-                                                        (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
-                    (
-                        cod_articulo,
-                        nombre_equipo,
-                        fecha_mantenimiento,
-                        vencimiento_mantenimiento,
-                        fecha_calibracion,  
-                        vencimiento_calibracion,  
-                        fecha_ingreso,
-                        periodicidad,
-                        estado_equipo,
-                        ubicacion_original,
-                        garantia,
-                        criticos,
-                        proveedor_responsable,
-                        ruta_imagen_db,
-                        especificaciones_instalacion, 
-                        cuidados_basicos,
-                        periodicidad_calibracion,
-                        marca_equipo_salud,
-                        modelo_equipo_salud,
-                        serial_equipo_salud,
-                        color,
-                        checkbox_mantenimiento,
-                        checkbox_calibracion,
-                        fecha_de_baja,
-                    ),
-                )
+#                 # Insertar en la tabla indexssalud
+#                 cur.execute("""INSERT INTO indexssalud (cod_articulo, nombre_equipo, fecha_mantenimiento, vencimiento_mantenimiento, fecha_calibracion, vencimiento_calibracion, fecha_ingreso, 
+#                                                         periodicidad, estado_equipo, ubicacion_original, garantia, criticos, proveedor_responsable, imagen, especificaciones_instalacion, cuidados_basicos, 
+#                                                         periodicidad_calibracion, marca_equipo_salud, modelo_equipo_salud, serial_equipo_salud, color, checkbox_mantenimiento, checkbox_calibracion, fecha_de_baja) VALUES 
+#                                                         (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+#                     (
+#                         cod_articulo,
+#                         nombre_equipo,
+#                         fecha_mantenimiento,
+#                         vencimiento_mantenimiento,
+#                         fecha_calibracion,  
+#                         vencimiento_calibracion,  
+#                         fecha_ingreso,
+#                         periodicidad,
+#                         estado_equipo,
+#                         ubicacion_original,
+#                         garantia,
+#                         criticos,
+#                         proveedor_responsable,
+#                         ruta_imagen_db,
+#                         especificaciones_instalacion, 
+#                         cuidados_basicos,
+#                         periodicidad_calibracion,
+#                         marca_equipo_salud,
+#                         modelo_equipo_salud,
+#                         serial_equipo_salud,
+#                         color,
+#                         checkbox_mantenimiento,
+#                         checkbox_calibracion,
+#                         fecha_de_baja,
+#                     ),
+#                 )
 
-        db.connection.commit()
+#         db.connection.commit()
 
-        if codigos_duplicados:
-            flash(f'Los siguientes códigos ya existen y no fueron insertados: {", ".join(codigos_duplicados)}', 'error')
-        if datos_validos:
-            flash(f'{len(datos_validos)} equipos importados exitosamente.', 'success')
-        else:
-            flash('No se importó ningún equipo.', 'error')
+#         if codigos_duplicados:
+#             flash(f'Los siguientes códigos ya existen y no fueron insertados: {", ".join(codigos_duplicados)}', 'error')
+#         if datos_validos:
+#             flash(f'{len(datos_validos)} equipos importados exitosamente.', 'success')
+#         else:
+#             flash('No se importó ningún equipo.', 'error')
 
-        return redirect(url_for('index_modulo', modulo='modulo'))
-# ---------------------------FINALIZA INSERT MASIVO CSV DE SALUD-----------------------------
+#         return redirect(url_for('index_modulo', modulo='modulo'))
+# ---------------------------FINALIZA INSERT MASIVO CSV SALUD-----------------------------
 
-# ---------------------------INICIA EXPORTACIÓN DE CSV DE EQUIPOS DE SALUD-----------------------------
-@app.route('/exportCsvsalud')
+# ---------------------------INICIA EXPORTACIÓN DE CSV DE EQUIPOS TECNOLOGIA-----------------------------
+@app.route('/exportCsvTecnologia')
 @login_required
 def exportCsv():
     cur = db.connection.cursor()
@@ -1679,14 +1679,14 @@ def exportCsv():
             i.software_instalado,
             t.nombre_tecnico AS proveedor_responsable,
             q.documento_identidad AS id_persona_responsable,
-            p.nombre_contratista AS id_persona_responsable,
-            i.enable
+            p.nombre_contratista AS id_persona_responsable
+            # i.enable
         FROM tecnologia_equipos i
         LEFT JOIN tecnologia_tecnico_responsable t ON i.proveedor_responsable = t.id
         LEFT JOIN tecnologia_persona_responsable q ON i.id_persona_responsable = q.id
         LEFT JOIN tecnologia_persona_responsable p ON i.id_persona_responsable = p.id
         LEFT JOIN tecnologia_ubicacion_equipos u ON i.ubicacion_original = u.id
-        WHERE i.otros_equipos_tecnologia = 0
+        WHERE i.de_baja = 0
         ORDER BY i.cod_articulo ASC
     """)
 
@@ -1718,7 +1718,7 @@ def exportCsv():
         'Técnico Responsable',
         'ID Responsable del Equipo',
         'Nombre Responsable del Equipo',
-        'Estdo Equipo'
+        # 'Estado Equipo'
     ]
     writer.writerow(encabezados)
 
@@ -1731,13 +1731,13 @@ def exportCsv():
         si.getvalue().encode('utf-8-sig'),
         mimetype='text/csv'
     )
-    salida.headers['Content-Disposition'] = 'attachment; filename=equiposSalud.csv'
+    salida.headers['Content-Disposition'] = 'attachment; filename=equiposTecnologia.csv'
 
     return salida
 # ---------------------------FINALIZA EXPORTACIÓN DE CSV DE EQUIPOS DE SALUD-----------------------------
 
-# ---------------------------INICIA EXPORTACIÓN DE FORMATO EXCEL DE EQUIPOS DE BAJA DE SALUD-----------------------------
-@app.route('/exportExcelSaludDeBaja', methods=['POST'])
+# ---------------------------INICIA EXPORTACIÓN DE FORMATO EXCEL DE EQUIPOS DE BAJA DE TECNOLIGIA-----------------------------
+@app.route('/exportExcelTecnologiaDeBaja', methods=['POST'])
 @login_required
 def exportExcelDeBaja():
     try:
@@ -1806,22 +1806,22 @@ def exportExcelDeBaja():
     except Exception as e:
         current_app.logger.exception("Error generando Excel")
         return jsonify({"error": str(e)}), 400
-# ---------------------------FINALIZA EXPORTACIÓN DE CSV DE EQUIPOS DE EQUIPOS DE BAJA DE SALUD-----------------------------
+# ---------------------------FINALIZA EXPORTACIÓN DE CSV DE EQUIPOS DE EQUIPOS DE BAJA DE TECNOLIGIA-----------------------------
 
-# ==========================FINALIZA FUNCIÓN EQUIPOS DADOS DE BAJA=====================
+# ==========================FINALIZA FUNCIÓN EQUIPOS DADOS DE BAJA SALUD=====================
 
 
 # FUNCIÓN ELIMINAR PARA INDEXSSALUD
-@app.route('/delete_productoSalud/<string:id>')
-@login_required
-def ELIMINAR_CONTACTO_SALUD(id):
-    cur = db.connection.cursor()
-    # cur.execute('DELETE FROM indexssalud WHERE id = {0}'.format(id))
-    #Esta linea de codigo en la vista elimina el producto pero no de la DB, la cual realiza es una actualización
-    cur.execute('UPDATE indexssalud SET enable=0 WHERE id = {0}'.format(id))
-    db.connection.commit()
-    flash('Equipo eliminado satisfactoriamente', 'success')
-    return redirect(url_for('index_modulo', modulo='modulo'))
+# @app.route('/delete_productoSalud/<string:id>')
+# @login_required
+# def ELIMINAR_CONTACTO_SALUD(id):
+#     cur = db.connection.cursor()
+#     # cur.execute('DELETE FROM indexssalud WHERE id = {0}'.format(id))
+#     #Esta linea de codigo en la vista elimina el producto pero no de la DB, la cual realiza es una actualización
+#     cur.execute('UPDATE indexssalud SET enable=0 WHERE id = {0}'.format(id))
+#     db.connection.commit()
+#     flash('Equipo eliminado satisfactoriamente', 'success')
+#     return redirect(url_for('index_modulo', modulo='modulo'))
 
 
 def status_401(error):
