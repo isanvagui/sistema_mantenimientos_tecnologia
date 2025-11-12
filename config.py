@@ -16,7 +16,7 @@ class ProductionConfig(Config):
     DEBUG = True
     MYSQL_HOST = '10.3.1.110'
     MYSQL_PORT = 3306
-    MYSQL_USER = 'dbgestionlab'
+    MYSQL_USER = 'mantenimientos_user'
     MYSQL_PASSWORD = 'Medellin2025*'
     MYSQL_DB = 'mantenimientos_tecnologia'
 
