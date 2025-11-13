@@ -39,12 +39,9 @@ from email_service import send_mantenimiento_notification_html
 # Importaciones desde el archivo email_devolucion
 # from email_devolucion import send_email_envio_with_logo
 # from email_devolucion import send_devolucion_notification_html
-from flask import Blueprint
 
 app = Flask(__name__)
 app.config.from_object(config['production'])
-
-mantenimiento_bp = Blueprint('mantenimiento', __name__, url_prefix='/mantenimientos-tecnologia')
 
 # Donde configuro mi clave
 app.config['SECRET_KEY'] = 'mysecretkey'
@@ -80,7 +77,7 @@ def evita_cache(response):
 @app.route('/')
 # @login_required
 def index():
-    return redirect(url_for('mantenimiento.login'))
+    return redirect(url_for('login'))
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -111,7 +108,7 @@ def login():
 # @login_required
 def logout():
     logout_user()
-    return redirect(url_for('mantenimiento.login'))
+    return redirect(url_for('login'))
 
 @app.route('/home')
 @login_required
