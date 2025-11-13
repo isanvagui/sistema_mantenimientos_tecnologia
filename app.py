@@ -40,13 +40,8 @@ from email_service import send_mantenimiento_notification_html
 # from email_devolucion import send_email_envio_with_logo
 # from email_devolucion import send_devolucion_notification_html
 
-# app = Flask(__name__, static_url_path='/mantenimientos-tecnologia/static')
-app = Flask(
-    __name__,
-    static_url_path='/mantenimientos-tecnologia/static',
-    static_folder='static'
-)
-app.config.from_object(config['production'])
+app = Flask(__name__, static_url_path='/mantenimientos-tecnologia/static')
+app.config.from_object(config['development'])
 
 # Donde configuro mi clave
 app.config['SECRET_KEY'] = 'mysecretkey'
@@ -85,7 +80,7 @@ def index():
     return redirect(url_for('login'))
 
 
-@app.route('/mantenimientos-tecnologia/login', methods=['GET', 'POST'])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         user = User(0, request.form['username'], request.form['password'])
@@ -109,13 +104,13 @@ def login():
     return render_template('auth/login.html')
 
 
-@app.route('/mantenimientos-tecnologia/logout')
+@app.route('/logout')
 # @login_required
 def logout():
     logout_user()
     return redirect(url_for('login'))
 
-@app.route('/mantenimientos-tecnologia/home')
+@app.route('/home')
 @login_required
 def home():
     cur = db.connection.cursor()
