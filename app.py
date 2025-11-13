@@ -40,7 +40,7 @@ from email_service import send_mantenimiento_notification_html
 # from email_devolucion import send_email_envio_with_logo
 # from email_devolucion import send_devolucion_notification_html
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='/mantenimientos-tecnologia/static')
 app.config.from_object(config['production'])
 
 # Donde configuro mi clave
