@@ -41,7 +41,7 @@ from email_service import send_mantenimiento_notification_html
 # from email_devolucion import send_devolucion_notification_html
 
 app = Flask(__name__, static_url_path='/mantenimientos-tecnologia/static')
-app.config.from_object(config['development'])
+app.config.from_object(config['production'])
 
 # Donde configuro mi clave
 app.config['SECRET_KEY'] = 'mysecretkey'
