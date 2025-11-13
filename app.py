@@ -85,7 +85,7 @@ def index():
     return redirect(url_for('login'))
 
 
-@app.route('/login', methods=['GET', 'POST'])
+@app.route('/mantenimientos-tecnologia/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         user = User(0, request.form['username'], request.form['password'])
@@ -109,13 +109,13 @@ def login():
     return render_template('auth/login.html')
 
 
-@app.route('/logout')
+@app.route('/mantenimientos-tecnologia/logout')
 # @login_required
 def logout():
     logout_user()
     return redirect(url_for('login'))
 
-@app.route('/home')
+@app.route('/mantenimientos-tecnologia/home')
 @login_required
 def home():
     cur = db.connection.cursor()
