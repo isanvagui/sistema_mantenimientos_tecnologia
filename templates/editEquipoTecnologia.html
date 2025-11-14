@@ -187,14 +187,14 @@
                 {%if historial %}
                 <td>
                     <div class="btn-eliminar">
-                        <center><a href="{{url_for('HISTORIAL_PREVENTIVO_TECNOLOGIA', cod_articulo = cod_articulo) }}" class="btn btn-hv btn-lg">
+                        <center><a href="{{url_for('main.HISTORIAL_PREVENTIVO_TECNOLOGIA', cod_articulo = cod_articulo) }}" class="btn btn-hv btn-lg">
                                     <FONT SIZE=1>MANTENIMIENTOS PREVENTIVOS</FONT>
                                 </a>
                         </center>
                     </div>
                     <br>
                     <div class="btn-eliminar">
-                        <center><a href="{{url_for('HISTORIAL_CORRECTIVO_TECNOLOGIA', cod_articulo = cod_articulo) }}" class="btn btn-hv btn-lg">
+                        <center><a href="{{url_for('main.HISTORIAL_CORRECTIVO_TECNOLOGIA', cod_articulo = cod_articulo) }}" class="btn btn-hv btn-lg">
                                     <FONT SIZE=1>MANTENIMIENTOS CORRECTIVOS</FONT>
                                 </a>
                         </center>
@@ -206,7 +206,7 @@
 
             <div class="section">
 
-                <form action="/actualizarTecnologia/{{ producto.id }}" method="POST">
+                <form action="{{ url_for('main.ACTUALIZAR_EQUIPO_TECNOLOGIA', id=producto.id) }}" method="POST">
                     
                     <h2>Acciones</h2>
                     <div class="form-group">
@@ -285,7 +285,6 @@
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <center><button type="submit" style="margin: 20px" class="btn btn-hv btn-lg"><FONT SIZE=3>actualizar</FONT></button></center>
                      <br>
-                    <!-- <div class="btn-eliminar"><center><a class="btn btn-hv btn-lg" href="{{ url_for('indexTecnologia') }}"><FONT SIZE=3>regresar</FONT></a></center></div> -->
                 </form>
             </div>
         </div>

@@ -22,12 +22,12 @@
     </div>
 
     <!-- Siempre visibles -->
-    <a href="{{ url_for('home') }}" data-icon="🏠"> Inicio</a>
-    <a href="{{ url_for('indexTecnologia') }}" data-icon="🤖"> Tecnologia</a>
+    <a href="{{ url_for('main.home') }}" data-icon="🏠"> Inicio</a>
+    <a href="{{ url_for('main.indexTecnologia') }}" data-icon="🤖"> Tecnologia</a>
     
     <!-- Si estamos en modulo TECNOLOGIA -->
-    {% if request.path == url_for('indexTecnologia') %}
-      <a href="{{ url_for('AGREGAR_NUEVA_PERSONA_TECNOLOGIA') }}" data-icon="🚚"> Agregar Persona Responsable</a>
+    {% if request.path == url_for('main.indexTecnologia') %}
+      <a href="{{ url_for('main.AGREGAR_NUEVA_PERSONA_TECNOLOGIA') }}" data-icon="🚚"> Agregar Persona Responsable</a>
       <a id="toggleFormBtn" class="btn-indexSalud" data-icon="➕"> Agregar Equipo Manual</a>
       <a id="toggleForm" class="btn-indexSalud" data-icon="📩"> Agregar Equipos Masivos .CSV</a>
       
@@ -39,11 +39,11 @@
            Actualización Masiva
       </a>
 
-      <a href="{{ url_for('index_otros_equipos_tecnologia') }}" data-icon="📦"> Otros Equipos de Tecnologia</a>
+      <a href="{{ url_for('main.index_otros_equipos_tecnologia') }}" data-icon="📦"> Otros Equipos de Tecnologia</a>
       
-      <a href="{{ url_for('equipos_debaja_tecnologia') }}" data-icon="🗑️"> Equipos de Baja</a>
-      <a href="{{ url_for('exportCsv') }}" data-icon="📄"> Exportar Equipos Activos</a>
-    {% elif request.path == url_for('index_otros_equipos_tecnologia') %}
+      <a href="{{ url_for('main.equipos_debaja_tecnologia') }}" data-icon="🗑️"> Equipos de Baja</a>
+      <a href="{{ url_for('main.exportCsv') }}" data-icon="📄"> Exportar Equipos Activos</a>
+    {% elif request.path == url_for('main.index_otros_equipos_tecnologia') %}
       <a id="toggleFor"
           class="btn-indexSalud"
           data-bs-toggle="modal"
@@ -51,14 +51,14 @@
           title="Actualizar fechas y guarda en historial" data-icon="🔁">
            Actualización Masiva
       </a>
-    {% elif request.path == url_for('equipos_debaja_tecnologia') %}
-      <a href="{{ url_for('exportExcelDeBaja') }}" data-icon="📂"  id="btnExportarBaja"> Exportar Equipos De Baja</a>
+    {% elif request.path == url_for('main.equipos_debaja_tecnologia') %}
+      <a href="{{ url_for('main.exportExcelDeBaja') }}" data-icon="📂"  id="btnExportarBaja"> Exportar Equipos De Baja</a>
     {% endif %}
     
     <a class="navbar-brand"></a>
     
     <!-- Cerrar sesión -->
-    <a href="{{ url_for('logout') }}" data-icon="🔒" class="logout"> Cerrar Sesión</a>
+    <a href="{{ url_for('main.logout') }}" data-icon="🔒" class="logout"> Cerrar Sesión</a>
   </div>
 
   <!-- Contenido principal -->
@@ -126,7 +126,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     try {
-      const resp = await fetch("{{ url_for('exportExcelDeBaja') }}", {
+      const resp = await fetch("{{ url_for('main.exportExcelDeBaja') }}", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

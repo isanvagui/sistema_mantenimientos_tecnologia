@@ -41,7 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (seleccionados.length === 0) return alert("Debe seleccionar al menos un equipo.");
 
             try {
-                const response = await fetch("/guardar_historialTecnologia", {
+                const response = await fetch("/mantenimientos-tecnologia/guardar_historialTecnologia", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -115,7 +115,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (diasRestantes < 30) {
                 checkbox.checked = false;
                 checkbox.setAttribute("data-estado-inicial", "Inactivo");
-                fetch("/checkbox_programacionMantenimiento", {
+                fetch("/mantenimientos-tecnologia/checkbox_programacionMantenimiento", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -139,7 +139,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const idEquipo = this.dataset.productoId;
 
                 try {
-                    const res = await fetch(`/get_datos_persona/${idEquipo}`);
+                    const res = await fetch(`/mantenimientos-tecnologia/get_datos_persona/${idEquipo}`);
                     const data = await res.json();
 
                     if (data.success) {

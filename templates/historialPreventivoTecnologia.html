@@ -99,7 +99,7 @@
                                     <td>
                                         {% if registro.id_persona_responsable in personas %}
                                             <div class="btn-eliminar">
-                                                <a href="{{ url_for('DATOS_PERSONA_TECNOLOGIA', id=registro.id_persona_responsable) }}" 
+                                                <a href="{{ url_for('main.DATOS_PERSONA_TECNOLOGIA', id=registro.id_persona_responsable) }}" 
                                                 class="btn btn-update-data btn-sm">
                                                     <small>Datos</small>
                                                 </a>
@@ -171,7 +171,7 @@
             </div>
 
             <div class="btn-eliminar">
-                <center><a class="btn btn-update-data btn-lg" href="{{ url_for('indexTecnologia') }}">
+                <center><a class="btn btn-update-data btn-lg" href="{{ url_for('main.indexTecnologia') }}">
                             <FONT SIZE=3>regresar</FONT>
                         </a>
                 </center>
