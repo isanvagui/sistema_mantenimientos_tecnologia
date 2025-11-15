@@ -191,7 +191,7 @@ def ACTUALIZAR_DATOS_PERSONA_TECNOLOGIA(id):
                                                       (documento_identidad, nombre_contratista, correo, area, id))
         db.connection.commit()
     flash('Datos actualizados satisfactorimanete', 'success')
-    return redirect(url_for('datosPersonaTecnologia', id = id))
+    return redirect(url_for('main.indexTecnologia', id = id))
     # return redirect(url_for('datosPersonaTecnologia')) 
 
 # ESTA FUNCIÓN ME LLEVA A OTRA VISTA PARA AGREGAR LOS NUEVAS PERSONAS
@@ -211,7 +211,7 @@ def EDITAR_DATOS_PERSONA_TECNOLOGIA():
         # ✅ Valida que todos los campos estén diligenciados
         if not documento_identidad or not nombre_contratista or not correo or not area:
             flash('Todos los campos son obligatorios', 'danger')
-            return redirect(url_for('AGREGAR_NUEVA_PERSONA_TECNOLOGIA'))
+            return redirect(url_for('main.AGREGAR_NUEVA_PERSONA_TECNOLOGIA'))
 
         cur = db.connection.cursor()
 
@@ -224,7 +224,7 @@ def EDITAR_DATOS_PERSONA_TECNOLOGIA():
 
         if existe:
             flash('El documento de identidad ya está registrado', 'warning')
-            return redirect(url_for('AGREGAR_NUEVA_PERSONA_TECNOLOGIA'))
+            return redirect(url_for('main.AGREGAR_NUEVA_PERSONA_TECNOLOGIA'))
 
         # ✅ Inserta solo si no existe
         cur.execute(
@@ -235,7 +235,7 @@ def EDITAR_DATOS_PERSONA_TECNOLOGIA():
         db.connection.commit()
 
         flash('Datos agregados satisfactoriamente', 'success')
-        return redirect(url_for('AGREGAR_NUEVA_PERSONA_TECNOLOGIA'))
+        return redirect(url_for('main.AGREGAR_NUEVA_PERSONA_TECNOLOGIA'))
 # ============================================================================================
 
 @bp.route('/indexTecnologia')

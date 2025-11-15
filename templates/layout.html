@@ -27,7 +27,7 @@
     
     <!-- Si estamos en modulo TECNOLOGIA -->
     {% if request.path == url_for('main.indexTecnologia') %}
-      <a href="{{ url_for('main.AGREGAR_NUEVA_PERSONA_TECNOLOGIA') }}" data-icon="🚚"> Agregar Persona Responsable</a>
+      <a href="{{ url_for('main.AGREGAR_NUEVA_PERSONA_TECNOLOGIA') }}" data-icon="👨‍💼"> Agregar Lider Responsable</a>
       <a id="toggleFormBtn" class="btn-indexSalud" data-icon="➕"> Agregar Equipo Manual</a>
       <a id="toggleForm" class="btn-indexSalud" data-icon="📩"> Agregar Equipos Masivos .CSV</a>
       
@@ -39,7 +39,7 @@
            Actualización Masiva
       </a>
 
-      <a href="{{ url_for('main.index_otros_equipos_tecnologia') }}" data-icon="📦"> Otros Equipos de Tecnologia</a>
+      <a href="{{ url_for('main.index_otros_equipos_tecnologia') }}" data-icon="📦"> Otros Equipos</a>
       
       <a href="{{ url_for('main.equipos_debaja_tecnologia') }}" data-icon="🗑️"> Equipos de Baja</a>
       <a href="{{ url_for('main.exportCsv') }}" data-icon="📄"> Exportar Equipos Activos</a>

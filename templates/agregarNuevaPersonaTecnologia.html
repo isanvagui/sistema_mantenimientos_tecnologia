@@ -73,8 +73,8 @@
     <div class="cv-container">
         <div class="right-column">
             <div class="section">
-                <center><h2>Agregar nueva persona</h2></center>
-                <form action="/add_datosPersonaTecnologia" method="POST" enctype="multipart/form-data">
+                <center><h2>Agregar Nuevo Lider</h2></center>
+                <form action="{{ url_for('main.EDITAR_DATOS_PERSONA_TECNOLOGIA') }}" method="POST" enctype="multipart/form-data">
                     <div class="form-group">
                         <label for="documento_identidad">Documento de identidad</label>
                         <input type="text" name="documento_identidad" class="form-control" required>

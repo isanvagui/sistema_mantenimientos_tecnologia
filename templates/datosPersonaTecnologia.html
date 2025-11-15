@@ -126,15 +126,15 @@
         <div class="right-column">
             <div class="section">
                 <center><h2>Datos persona responsable del equipo</h2></center>
-                <form action="/update_datos_proveedor_salud/{{ persona.id }}" method="POST">
+                <form action="{{ url_for('main.ACTUALIZAR_DATOS_PERSONA_TECNOLOGIA', id=persona.id) }}" method="POST">
                     <div class="form-group">
                         <label for="documento_identidad">Documento de Identidad</label>
                         <input type="text" id="documento_identidad" name="documento_identidad" value="{{ persona.documento_identidad }}" class="form-control">
                     </div>
 
                     <div class="form-group">
-                        <label for="nombre_contacto">Nombre Contratista</label>
-                        <input type="text" id="nombre_contacto" name="nombre_contacto" value="{{ persona.nombre_contratista }}" class="form-control">
+                        <label for="nombre_contratista">Nombre Contratista</label>
+                        <input type="text" id="nombre_contratista" name="nombre_contratista" value="{{ persona.nombre_contratista }}" class="form-control">
                     </div>
                     <div class="form-group">
                         <label for="correo">Correo Electronico</label>
@@ -142,13 +142,12 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="ciudad">Proceso</label>
-                        <input type="text" id="ciudad" name="ciudad" value="{{ persona.area }}" class="form-control">
+                        <label for="area">Proceso</label>
+                        <input type="text" id="area" name="area" value="{{ persona.area }}" class="form-control">
                     </div>
 
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <!-- <center><button type="submit" style="margin: 20px" class="btn btn-update-proveedor btn-lg"><FONT SIZE=3>actualizar</FONT></button></center> -->
-                    <br>
+                    <center><button type="submit" style="margin: 20px" class="btn btn-update-proveedor btn-lg"><FONT SIZE=3>actualizar</FONT></button></center>
                     <div class="btn-eliminar">
                         <center><a class="btn btn-update-proveedor btn-lg" href="{{ url_for('main.indexTecnologia') }}">
                                     <FONT SIZE=3>regresar</FONT>
