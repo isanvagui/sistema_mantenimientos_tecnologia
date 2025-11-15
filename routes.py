@@ -291,7 +291,7 @@ def AGREGAR_EQUIPOS_TECNOLOGIA():
 
         if existing_articulo:
             flash(f'El código de equipo {cod_articulo} ya existe', 'error')
-            return redirect(url_for('indexTecnologia'))
+            return redirect(url_for('main.indexTecnologia'))
 
         # PARA EL CHECKBOX Y SEMAFORO DE MANTENIMIENTO
         fecha_mantenimiento = request.form ['fecha_mantenimiento'] or None
