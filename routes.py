@@ -1359,7 +1359,7 @@ def index_otros_equipos_tecnologia():
     ubicacionEquipos_data = cur.fetchall()
     ubicacionEquiposModal = {p["id"]: p["ubicacion_original"] for p in ubicacionEquipos_data}
     # print(ubicacionEquipos)
-    return render_template('indexOtrosEquiposTecnologia.html', tecnologia_equipos=data_otros_equipos_tecnologia, tipoEquipos=tipoEquipos, proveedores=proveedores, personas=personas, estadoEquipos=estadoEquipos, ubicacionEquipos=ubicacionEquipos, ubicacionEquiposModal=ubicacionEquiposModal)
+    return render_template('IndexOtrosEquiposTecnologia.html', tecnologia_equipos=data_otros_equipos_tecnologia, tipoEquipos=tipoEquipos, proveedores=proveedores, personas=personas, estadoEquipos=estadoEquipos, ubicacionEquipos=ubicacionEquipos, ubicacionEquiposModal=ubicacionEquiposModal)
 # ==========================INICIA FUNCIÓN EQUIPOS DADOS DE BAJA TECNOLOGIA=====================
 @bp.route('/equiposDeBajaTecnologia')
 @login_required
