@@ -395,7 +395,6 @@ def add_equipos_tecnologia():
             return redirect(url_for('main.indexOtrosEquiposTecnologia'))
         else:
             return redirect(url_for('main.indexTecnologia'))
-    return render_template('add_equipos_tecnologia.html')
 # ---------------------------INICIA INSERT MASIVO DE EQUIPOS CSV DE TECNOLOGIA-----------------------------
 @bp.route('/insert_csvTecnologia', methods=['POST'])
 def INSERT_CSV_TECNOLOGIA():
