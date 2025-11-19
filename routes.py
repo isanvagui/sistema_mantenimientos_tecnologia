@@ -394,7 +394,7 @@ def AGREGAR_EQUIPOS_TECNOLOGIA():
         if estado_equipo == "OTROS EQUIPOS":
             return redirect(url_for('indexOtrosEquiposTecnologia'))
         else:
-            return redirect(url_for('indexTecnologia'))
+            return redirect(url_for('main.indexTecnologia'))
 # ---------------------------INICIA INSERT MASIVO DE EQUIPOS CSV DE TECNOLOGIA-----------------------------
 @bp.route('/insert_csvTecnologia', methods=['POST'])
 def INSERT_CSV_TECNOLOGIA():
