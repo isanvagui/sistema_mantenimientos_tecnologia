@@ -271,8 +271,8 @@ def indexTecnologia():
     return render_template('indexTecnologia.html', tecnologia_equipos=data, tipoEquipos=tipoEquipos, proveedores=proveedores, personas=personas, estadoEquipos=estadoEquipos, ubicacionEquipos=ubicacionEquipos, ubicacionEquiposModal=ubicacionEquiposModal)
 
 
-@bp.route('/add_equipos_tecnologia', methods=['POST'])
-def AGREGAR_EQUIPOS_TECNOLOGIA():
+@bp.route('/add_equipos_tecnologia',  methods=['GET', 'POST'])
+def add_equipos_tecnologia():
     if request.method =='POST':
         cod_articulo = request.form ['cod_articulo']
         nombre_equipo = request.form ['nombre_equipo']
