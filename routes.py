@@ -15,7 +15,7 @@ from dateutil.relativedelta import relativedelta
 
 # # Para subir archivos tipo foto al servidor
 import os
-
+import uuid
 from werkzeug.utils import secure_filename
 
 
@@ -34,6 +34,9 @@ from datetime import datetime
 
 
 bp = Blueprint('main', __name__)
+
+UPLOAD_FOLDER = "/var/www/sistema_mantenimientos_tecnologia/static/fotos"
+ALLOWED_EXTENSIONS = {".png", ".jpg", ".jpeg"}
 
 # Inicializo las extenciones
 # csrf = CSRFProtect(bp)
@@ -271,102 +274,104 @@ def indexTecnologia():
     return render_template('indexTecnologia.html', tecnologia_equipos=data, tipoEquipos=tipoEquipos, proveedores=proveedores, personas=personas, estadoEquipos=estadoEquipos, ubicacionEquipos=ubicacionEquipos, ubicacionEquiposModal=ubicacionEquiposModal)
 
 
-@bp.route('/add_equipos_tecnologia',  methods=['GET', 'POST'])
-def add_equipos_tecnologia():
-    if request.method =='POST':
-        cod_articulo = request.form ['cod_articulo']
-        nombre_equipo = request.form ['nombre_equipo']
+def allowed_image(filename):
+    ext = os.path.splitext(filename.lower())[1]
+    return ext in ALLOWED_EXTENSIONS
 
-        # Validación de cod_articulo
+
+@bp.route('/add_equipos_tecnologia', methods=['GET', 'POST'])
+def add_equipos_tecnologia():
+    if request.method == 'POST':
+
+        # ===== VALIDAR CAMPOS =====
+        cod_articulo = request.form.get('cod_articulo')
+        nombre_equipo = request.form.get('nombre_equipo')
+
         try:
             cod_articulo = int(cod_articulo)
-        except ValueError:
-            flash('Por favor ingresar solo números en el código del equipo', 'error')
-            return redirect(url_for('indexTecnologia'))
-
-        # Consulta para verificar si el cod_articulo ya existe en la base de datos
-        cur = db.connection.cursor()
-        cur.execute("SELECT * FROM tecnologia_equipos WHERE cod_articulo = %s", (cod_articulo,))
-        existing_articulo = cur.fetchone()
-
-        if existing_articulo:
-            flash(f'El código de equipo {cod_articulo} ya existe', 'error')
+        except:
+            flash("Por favor ingresar solo números en el código del equipo.", "error")
             return redirect(url_for('main.indexTecnologia'))
 
-        # PARA EL CHECKBOX Y SEMAFORO DE MANTENIMIENTO
-        fecha_mantenimiento = request.form ['fecha_mantenimiento'] or None
-        vencimiento_mantenimiento = request.form ['vencimiento_mantenimiento'] or None
-        checkbox_mantenimiento = 'Inactivo' # Valor predeterminado
-        
-        # # Obtener hora actual del equipo
-        # hora_actual = datetime.now().date()
-        color = 'verde'
-        # PARA EL CHECKBOX DE CALIBRACIÓN
-        fecha_calibracion = request.form ['fecha_calibracion'] or None
-        vencimiento_calibracion = request.form ['vencimiento_calibracion'] or None
-        checkbox_calibracion = 'Inactivo' # Valor predeterminado
-        fecha_ingreso = request.form ['fecha_ingreso']
-        tipo_equipo = request.form ['tipo_equipo']
-        estado_equipo = request.form ['estado_equipo']
-        ubicacion_original = request.form ['ubicacion_original']
-        ram = request.form ['ram']
-        disco = request.form ['disco']
-        proveedor_responsable = request.form ['proveedor_responsable']
+        # ===== VERIFICAR EXISTENCIA =====
+        cur = db.connection.cursor()
+        cur.execute("SELECT 1 FROM tecnologia_equipos WHERE cod_articulo = %s", (cod_articulo,))
+        if cur.fetchone():
+            flash(f"El código {cod_articulo} ya existe.", "error")
+            return redirect(url_for('main.indexTecnologia'))
 
-        # Manejo de la imagen
-        if 'imagen_producto' not in request.files:
-            flash('No existe archivo de imagen.', 'error')
-            return redirect(url_for('indexTecnologia'))
+        # ===== VALIDAR IMAGEN =====
+        file = request.files.get('imagen_producto')
 
-        file = request.files['imagen_producto']
+        if not file or file.filename == "":
+            flash("Debe seleccionar una imagen.", "error")
+            return redirect(url_for('main.indexTecnologia'))
 
-        if file.filename == '':
-            flash('Por favor seleccione un archivo de imagen.', 'error')
-            return redirect(url_for('indexTecnologia'))
+        if not allowed_image(file.filename):
+            flash("Formato inválido. Solo se permiten PNG, JPG, JPEG.", "error")
+            return redirect(url_for('main.indexTecnologia'))
 
-        # Validar extensión de imagen
-        extensiones_permitidas_img = ('.png', '.jpg', '.jpeg')
-        if not file.filename.lower().endswith(extensiones_permitidas_img):
-            flash(f'Formato de imagen no permitido. Solo se permiten: {", ".join(extensiones_permitidas_img)}', 'error')
-            return redirect(url_for('indexTecnologia'))
+        # ===== ASEGURAR CARPETA =====
+        os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-        # Guardar imagen
-        filename = secure_filename(file.filename)
-        filepath_to_db_img = os.path.join('fotos', filename).replace("\\", "/")
-        ruta_absoluta = os.path.join(bp.root_path, 'static', filepath_to_db_img)
-        file.save(ruta_absoluta)
+        # ===== GENERAR NOMBRE ÚNICO =====
+        ext = os.path.splitext(file.filename)[1]
+        unique_name = f"{uuid.uuid4().hex}{ext}"
+        save_path = os.path.join(UPLOAD_FOLDER, unique_name)
 
-        software_instalado = request.form ['software_instalado']
-        marca_equipo_tecnologia = request.form ['marca_equipo_tecnologia']
-        modelo_equipo_tecnologia = request.form ['modelo_equipo_tecnologia']
-        serial_equipo_tecnologia = request.form ['serial_equipo_tecnologia']
-        id_persona_responsable = request.form ['id_persona_responsable']
-        otros_equipos_tecnologia = 1 if estado_equipo == "OTROS EQUIPOS" else 0
+        file.save(save_path)
+
+        # Ruta relativa para guardar en BD:
+        image_path_db = f"fotos/{unique_name}"
+
+        # ===== RESTO DE CAMPOS (limpios) =====
+        fecha_mantenimiento = request.form.get("fecha_mantenimiento") or None
+        vencimiento_mantenimiento = request.form.get("vencimiento_mantenimiento") or None
+        fecha_calibracion = request.form.get("fecha_calibracion") or None
+        vencimiento_calibracion = request.form.get("vencimiento_calibracion") or None
+
+        estado_equipo = request.form.get("estado_equipo")
         fecha_de_baja = date.today() if estado_equipo == "DE BAJA" else None
-        
-        # Guardar siempre en tecnologia_equipos
+
+        # ===== INSERT EN tecnología_equipos =====
         cur.execute("""
             INSERT INTO tecnologia_equipos (
                 cod_articulo, nombre_equipo, fecha_mantenimiento, vencimiento_mantenimiento, 
                 fecha_calibracion, vencimiento_calibracion, fecha_ingreso, tipo_equipo, 
                 estado_equipo, ubicacion_original, ram, disco, proveedor_responsable, 
-                color, checkbox_mantenimiento, checkbox_calibracion, imagen, software_instalado, 
-                marca_equipo_tecnologia, modelo_equipo_tecnologia, serial_equipo_tecnologia, 
-                id_persona_responsable, otros_equipos_tecnologia, de_baja
-            ) VALUES (
-                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                color, checkbox_mantenimiento, checkbox_calibracion, imagen, 
+                software_instalado, marca_equipo_tecnologia, modelo_equipo_tecnologia, 
+                serial_equipo_tecnologia, id_persona_responsable, otros_equipos_tecnologia, de_baja
             )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """, (
-            cod_articulo, nombre_equipo, fecha_mantenimiento, vencimiento_mantenimiento,
-            fecha_calibracion, vencimiento_calibracion, fecha_ingreso, tipo_equipo,
-            estado_equipo, ubicacion_original, ram, disco, proveedor_responsable,
-            color, checkbox_mantenimiento, checkbox_calibracion, filepath_to_db_img, 
-            software_instalado, marca_equipo_tecnologia, modelo_equipo_tecnologia,
-            serial_equipo_tecnologia, id_persona_responsable, otros_equipos_tecnologia,
+            cod_articulo,
+            nombre_equipo,
+            fecha_mantenimiento,
+            vencimiento_mantenimiento,
+            fecha_calibracion,
+            vencimiento_calibracion,
+            request.form.get("fecha_ingreso"),
+            request.form.get("tipo_equipo"),
+            estado_equipo,
+            request.form.get("ubicacion_original"),
+            request.form.get("ram"),
+            request.form.get("disco"),
+            request.form.get("proveedor_responsable"),
+            "verde",   # color fijo que estabas usando
+            "Inactivo",
+            "Inactivo",
+            image_path_db,
+            request.form.get("software_instalado"),
+            request.form.get("marca_equipo_tecnologia"),
+            request.form.get("modelo_equipo_tecnologia"),
+            request.form.get("serial_equipo_tecnologia"),
+            request.form.get("id_persona_responsable"),
+            1 if estado_equipo == "OTROS EQUIPOS" else 0,
             1 if estado_equipo == "DE BAJA" else 0
         ))
 
-        # Si es DE BAJA, guardar también en tecnologia_equipos_debaja
+        # ===== INSERT EN DE BAJA =====
         if estado_equipo == "DE BAJA":
             cur.execute("""
                 INSERT INTO tecnologia_equipos_debaja (
@@ -379,22 +384,40 @@ def add_equipos_tecnologia():
                 )
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """, (
-                cod_articulo, nombre_equipo, fecha_mantenimiento, vencimiento_mantenimiento,
-                fecha_calibracion, vencimiento_calibracion, fecha_ingreso, tipo_equipo,
-                estado_equipo, ubicacion_original, ram, disco, proveedor_responsable,
-                color, checkbox_mantenimiento, checkbox_calibracion, filepath_to_db_img,
-                software_instalado, marca_equipo_tecnologia, modelo_equipo_tecnologia,
-                serial_equipo_tecnologia, fecha_de_baja, id_persona_responsable
+                cod_articulo,
+                nombre_equipo,
+                fecha_mantenimiento,
+                vencimiento_mantenimiento,
+                fecha_calibracion,
+                vencimiento_calibracion,
+                request.form.get("fecha_ingreso"),
+                request.form.get("tipo_equipo"),
+                estado_equipo,
+                request.form.get("ubicacion_original"),
+                request.form.get("ram"),
+                request.form.get("disco"),
+                request.form.get("proveedor_responsable"),
+                "verde",
+                "Inactivo",
+                "Inactivo",
+                image_path_db,
+                request.form.get("software_instalado"),
+                request.form.get("marca_equipo_tecnologia"),
+                request.form.get("modelo_equipo_tecnologia"),
+                request.form.get("serial_equipo_tecnologia"),
+                fecha_de_baja,
+                request.form.get("id_persona_responsable")
             ))
 
         db.connection.commit()
+
         flash("Equipo agregado correctamente", "success")
 
-        # Redirigir según tipo
         if estado_equipo == "OTROS EQUIPOS":
             return redirect(url_for('main.indexOtrosEquiposTecnologia'))
-        else:
-            return redirect(url_for('main.indexTecnologia'))
+
+        return redirect(url_for('main.indexTecnologia'))
+
     return render_template('indexTecnologia.html')
 # ---------------------------INICIA INSERT MASIVO DE EQUIPOS CSV DE TECNOLOGIA-----------------------------
 @bp.route('/insert_csvTecnologia', methods=['POST'])
