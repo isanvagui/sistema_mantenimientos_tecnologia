@@ -11,7 +11,6 @@ app.config.from_object(config['production'])
 
 # Donde configuro mi clave
 app.config['SECRET_KEY'] = 'mysecretkey'
-app.config['UPLOAD_FOLDER'] = 'static/fotos'
 
 # Inicializo las extenciones
 csrf.init_app(app)
