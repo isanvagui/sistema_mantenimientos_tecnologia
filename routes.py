@@ -497,7 +497,7 @@ def INSERT_CSV_TECNOLOGIA():
             id_persona_responsable = persona_map.get(nombre_persona) 
 
             if not id_persona_responsable:
-                flash(f"Persona '{row[12]}' no encontrado en la base de datos.", 'error')
+                flash(f"Persona '{row[12]}' no encontrada en la base de datos.", 'error')
                 continue
             
             ram = row[13]
@@ -759,10 +759,21 @@ def update_estado_equipo_tecnologia():
         hora_actual = datetime.now()
 
         # PARA EL CHECKBOX Y SEMAFORO DE MANTENIMIENTO
-        fecha_mantenimiento = request.form ['fecha_mantenimiento']
-        # ====REALIZAR UN CICLO PARA CUANDO SE LE QUIERA DAR DE BAJA A UN EQUIPO SI NO TIENE FECHA DE MANTENIMIENTO QUE MUESTRE UNA ALERTA=====
+        fecha_mantenimiento = request.form.get('fecha_mantenimiento', '') or None
+        vencimiento_mantenimiento = request.form.get('vencimiento_mantenimiento', '') or None
+        # Convertir a objetos date solo si existen
+        if fecha_mantenimiento:
+            try:
+                fecha_mantenimiento = datetime.strptime(fecha_mantenimiento, '%Y-%m-%d').date()
+            except ValueError:
+                fecha_mantenimiento = None
 
-        vencimiento_mantenimiento = request.form ['vencimiento_mantenimiento']
+        if vencimiento_mantenimiento:
+            try:
+                vencimiento_mantenimiento = datetime.strptime(vencimiento_mantenimiento, '%Y-%m-%d').date()
+            except ValueError:
+                vencimiento_mantenimiento = None
+
         color = 'verde'
         
         # PARA EL CHECKBOX DE CALIBRACIÓN
