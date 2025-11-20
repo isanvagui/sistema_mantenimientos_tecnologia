@@ -1113,7 +1113,7 @@ def GET_EQUIPO_TECNOLOGIA(id,vista):
 @bp.route('/actualizarTecnologia/<id>', methods = ['POST'])
 def ACTUALIZAR_EQUIPO_TECNOLOGIA(id):
     if request.method =='POST':
-        cod_articulo = request.form ['cod_articulo']
+        # cod_articulo = request.form ['cod_articulo']
         nombre_equipo = request.form ['nombre_equipo']
         ubicacion_original = request.form ['ubicacion_original'] or None
         
@@ -1159,10 +1159,10 @@ def ACTUALIZAR_EQUIPO_TECNOLOGIA(id):
 
         # Obtener las fechas actuales antes de actualizar
         cur.execute(
-            """ UPDATE tecnologia_equipos SET cod_articulo = %s, nombre_equipo = %s, ubicacion_original = %s, fecha_mantenimiento = %s, vencimiento_mantenimiento = %s, fecha_calibracion = %s, vencimiento_calibracion = %s,
+            """ UPDATE tecnologia_equipos SET  nombre_equipo = %s, ubicacion_original = %s, fecha_mantenimiento = %s, vencimiento_mantenimiento = %s, fecha_calibracion = %s, vencimiento_calibracion = %s,
                 fecha_ingreso = %s, periodicidad = %s, color = %s, periodicidad_calibracion = %s WHERE id = %s""",
             (
-                cod_articulo,
+                # cod_articulo,
                 nombre_equipo,
                 ubicacion_original,
                 fecha_mantenimiento,
