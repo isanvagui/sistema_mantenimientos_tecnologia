@@ -68,7 +68,7 @@ def evita_cache(response):
 @bp.route('/')
 # @login_required
 def index():
-    return redirect(url_for('login'))
+    return redirect(url_for('main.login'))
 
 
 @bp.route('/login', methods=['GET', 'POST'])
