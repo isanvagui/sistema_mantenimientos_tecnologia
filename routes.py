@@ -739,6 +739,7 @@ def get_datos_persona(id):
     
 # ACTUALIZA EL ESTADO DEL EQUIPO DESDE EL DESPLEGABLE QUE SE ENCUENTRA EN LA MISMA TABLA INDEXSALUD
 @bp.route('/update_estadoEquipoTecnologia', methods=['POST'])
+@login_required
 def update_estado_equipo_tecnologia():
     if request.method == 'POST':
 
