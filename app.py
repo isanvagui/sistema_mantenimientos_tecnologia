@@ -6,8 +6,9 @@ from flask import Flask,redirect, url_for
 from extensions import db, csrf, login_manager
 from routes import bp
 
-app = Flask(__name__, static_url_path='/mantenimientos-tecnologia/static')
+app = Flask(__name__)
 app.config.from_object(config['production'])
+app.register_blueprint(bp, url_prefix='/mantenimientos-tecnologia')
 
 # Donde configuro mi clave
 app.config['SECRET_KEY'] = 'mysecretkey'
@@ -18,7 +19,7 @@ db.init_app(app)
 login_manager.init_app (app)
 login_manager.login_view = "main.login"
 
-app.register_blueprint(bp)
+
 
 def status_401(error):
     return redirect(url_for('login'))

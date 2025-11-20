@@ -33,7 +33,7 @@ from models.ModelUser import ModelUser
 from datetime import datetime
 
 
-bp = Blueprint('main', __name__, url_prefix='/mantenimientos-tecnologia')
+bp = Blueprint('main', __name__)
 
 UPLOAD_FOLDER = "/var/www/sistema_mantenimientos_tecnologia/static/fotos"
 ALLOWED_EXTENSIONS = {".png", ".jpg", ".jpeg"}
