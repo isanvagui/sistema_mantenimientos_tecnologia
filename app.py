@@ -18,7 +18,7 @@ db.init_app(app)
 login_manager.init_app (app)
 login_manager.login_view = "main.login"
 
-app.register_blueprint(bp, url_prefix='/mantenimientos-tecnologia')
+app.register_blueprint(bp)
 
 def status_401(error):
     return redirect(url_for('login'))
