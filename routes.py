@@ -325,6 +325,7 @@ def add_equipos_tecnologia():
         image_path_db = f"fotos/{unique_name}"
 
         # ===== RESTO DE CAMPOS (limpios) =====
+        fecha_ingreso = request.form.get("fecha_ingreso") or None
         fecha_mantenimiento = request.form.get("fecha_mantenimiento") or None
         vencimiento_mantenimiento = request.form.get("vencimiento_mantenimiento") or None
         fecha_calibracion = request.form.get("fecha_calibracion") or None
@@ -351,7 +352,7 @@ def add_equipos_tecnologia():
             vencimiento_mantenimiento,
             fecha_calibracion,
             vencimiento_calibracion,
-            request.form.get("fecha_ingreso"),
+            fecha_ingreso,
             request.form.get("tipo_equipo"),
             estado_equipo,
             request.form.get("ubicacion_original"),
@@ -390,7 +391,7 @@ def add_equipos_tecnologia():
                 vencimiento_mantenimiento,
                 fecha_calibracion,
                 vencimiento_calibracion,
-                request.form.get("fecha_ingreso"),
+                fecha_ingreso,
                 request.form.get("tipo_equipo"),
                 estado_equipo,
                 request.form.get("ubicacion_original"),
