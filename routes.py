@@ -482,7 +482,7 @@ def INSERT_CSV_TECNOLOGIA():
         for row in datos_validos:
             cod_articulo = int(row[0])
             nombre_equipo = row[1]
-            fecha_ingreso = row[2]
+            fecha_ingreso = row[2] or None
             periodicidad = int(row[3]) if row[3].strip() else None
             fecha_mantenimiento = row[4] or None
             vencimiento_mantenimiento = row[5] or None
