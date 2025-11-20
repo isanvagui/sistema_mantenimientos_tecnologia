@@ -33,7 +33,7 @@ from models.ModelUser import ModelUser
 from datetime import datetime
 
 
-bp = Blueprint('main', __name__, url_prefix='/mantenimientos-tecnologia', strict_slashes=False)
+bp = Blueprint('main', __name__, url_prefix='/mantenimientos-tecnologia')
 
 UPLOAD_FOLDER = "/var/www/sistema_mantenimientos_tecnologia/static/fotos"
 ALLOWED_EXTENSIONS = {".png", ".jpg", ".jpeg"}
@@ -68,7 +68,7 @@ def evita_cache(response):
 @bp.route('/')
 # @login_required
 def index():
-    return redirect(url_for('main.login'))
+    return redirect(url_for('login'))
 
 
 @bp.route('/login', methods=['GET', 'POST'])
