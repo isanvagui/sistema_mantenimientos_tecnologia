@@ -841,6 +841,19 @@ def update_estado_equipo_tecnologia():
         filepath_to_db_img = imagen_result[0] if imagen_result else None
 
         if nuevo_estado == 'DE BAJA':
+
+            # ===== VALIDAR FECHA DE INGRESO =====
+            if fecha_ingreso in (None, "", "None"):
+                flash("Ingresar FECHA DE COMPRA para dar de baja al equipo.", "error")
+                return redirect(url_for('main.indexTecnologia'))
+
+            # Convertir fecha_ingreso si viene correcta
+            try:
+                fecha_ingreso = datetime.strptime(fecha_ingreso, "%Y-%m-%d").date()
+            except ValueError:
+                flash("FECHA DE COMPRA no tiene un formato válido (YYYY-MM-DD).", "error")
+                return redirect(url_for('main.indexTecnologia'))
+            
             # Actualizar el estado y marcar como dado de baja en tecnologia_equipos
             cur.execute("""UPDATE tecnologia_equipos SET estado_equipo = %s, enable = 0, de_baja = 1, otros_equipos_tecnologia = 0 WHERE cod_articulo = %s""", (nuevo_estado, cod_articulo))
 
