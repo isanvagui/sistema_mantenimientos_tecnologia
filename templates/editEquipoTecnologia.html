@@ -220,11 +220,6 @@
                             class="form-control">
                     </div>
 
-                    <!-- <div class="form-group">
-                        <b><label for="ubicacion">Ubicación equipo</label></b>
-                        <input type="text" id="ubicacion" name="ubicacion" value="{{ producto.ubicacion_original }}"
-                            class="form-control">
-                    </div> -->
                     <div class="form-group">
                         <b><label for="selectUbicacion">Proceso</label></b>
                         <select id="selectUbicacion" name="ubicacion_original" class="form-control">
@@ -243,6 +238,26 @@
                         </select>
                     </div>
 
+                    <div class="form-group">
+                        <b><label for="software_instalado">Software Instalado</label></b>
+                        <input type="text" id="software_instalado" name="software_instalado" value="{{ producto.software_instalado }}" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <b><label for="marca_equipo_tecnologia">Marca Equipo</label></b>
+                        <input type="text" id="marca_equipo_tecnologia" name="marca_equipo_tecnologia" value="{{ producto.marca_equipo_tecnologia }}" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <b><label for="modelo_equipo_tecnologia">Modelo Equipo</label></b>
+                        <input type="text" id="modelo_equipo_tecnologia" name="modelo_equipo_tecnologia" value="{{ producto.modelo_equipo_tecnologia }}" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <b><label for="serial_equipo_tecnologia">Serial Equipo</label></b>
+                        <input type="text" id="serial_equipo_tecnologia" name="serial_equipo_tecnologia" value="{{ producto.serial_equipo_tecnologia }}" class="form-control"> 
+                    </div>
+                    
                     <div class="form-group">
                         <b><label for="fecha_ingreso">Fecha Compra</label></b>
                         <input type="date" id="fecha_ingreso" name="fecha_ingreso" value="{{ producto.fecha_ingreso }}"

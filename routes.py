@@ -1130,6 +1130,10 @@ def ACTUALIZAR_EQUIPO_TECNOLOGIA(id):
         # cod_articulo = request.form ['cod_articulo']
         nombre_equipo = request.form ['nombre_equipo']
         ubicacion_original = request.form ['ubicacion_original'] or None
+        software_instalado = request.form ['software_instalado'] or None
+        marca_equipo_tecnologia = request.form ['marca_equipo_tecnologia'] or None
+        modelo_equipo_tecnologia = request.form ['modelo_equipo_tecnologia'] or None
+        serial_equipo_tecnologia = request.form ['serial_equipo_tecnologia'] or None
         
         # PARA EL CHECKBOX Y SEMAFORO DE MANTENIMIENTO
         fecha_mantenimiento = request.form ['fecha_mantenimiento'] or None
@@ -1151,7 +1155,7 @@ def ACTUALIZAR_EQUIPO_TECNOLOGIA(id):
         fecha_calibracion = request.form ['fecha_calibracion'] or None
         vencimiento_calibracion = request.form ['vencimiento_calibracion'] or None
 
-        fecha_ingreso = request.form ['fecha_ingreso']
+        fecha_ingreso = request.form ['fecha_ingreso'] or None
         periodicidad_raw = request.form ['periodicidad']
         if periodicidad_raw in (None, "", "None"):
             periodicidad = None
@@ -1173,12 +1177,17 @@ def ACTUALIZAR_EQUIPO_TECNOLOGIA(id):
 
         # Obtener las fechas actuales antes de actualizar
         cur.execute(
-            """ UPDATE tecnologia_equipos SET  nombre_equipo = %s, ubicacion_original = %s, fecha_mantenimiento = %s, vencimiento_mantenimiento = %s, fecha_calibracion = %s, vencimiento_calibracion = %s,
+            """ UPDATE tecnologia_equipos SET  nombre_equipo = %s, ubicacion_original = %s, software_instalado = %s, marca_equipo_tecnologia = %s, modelo_equipo_tecnologia = %s, 
+                serial_equipo_tecnologia =%s, fecha_mantenimiento = %s, vencimiento_mantenimiento = %s, fecha_calibracion = %s, vencimiento_calibracion = %s,
                 fecha_ingreso = %s, periodicidad = %s, color = %s, periodicidad_calibracion = %s WHERE id = %s""",
             (
                 # cod_articulo,
                 nombre_equipo,
                 ubicacion_original,
+                software_instalado,
+                marca_equipo_tecnologia,
+                modelo_equipo_tecnologia,
+                serial_equipo_tecnologia,
                 fecha_mantenimiento,
                 vencimiento_mantenimiento,
                 fecha_calibracion,
@@ -1186,10 +1195,7 @@ def ACTUALIZAR_EQUIPO_TECNOLOGIA(id):
                 fecha_ingreso,
                 periodicidad,
                 color,
-                # software_instalado,
-                # cuidados_basicos,
                 periodicidad_calibracion,
-                
                 id,
             ),
         )
@@ -1468,42 +1474,42 @@ def index_modulo(modulo):
 
     
 # ---------------------------FUNCION PARA CARGAR IMAGEN DEL EQUIPO DESDE LA TABLA indexSalud EN EL CAMPO ACCIONES SUBIR_IMAGEN-----------------------------  
-# @app.route('/subir_imagen/<int:id_producto>', methods=['POST'])
-# def subir_imagen(id_producto, modulo):
-#     if 'imagen_producto' not in request.files:
-#         flash('No se seleccionó ningún archivo', 'error')
-#         return redirect(url_for('index_modulo', modulo=modulo))
+@bp.route('/subir_imagen/<int:id_producto>', methods=['POST'])
+def subir_imagen(id_producto):
+    if 'imagen_producto' not in request.files:
+        flash('No se seleccionó ningún archivo', 'error')
+        return redirect(url_for('indexTecnologia'))
 
-#     file = request.files['imagen_producto']
-#     if file.filename == '':
-#         flash('Por favor seleccione un archivo válido', 'error')
-#         return redirect(url_for('index_modulo', modulo=modulo))
+    file = request.files['imagen_producto']
+    if file.filename == '':
+        flash('Por favor seleccione un archivo válido', 'error')
+        return redirect(url_for('indexTecnologia'))
     
-#     # Validar extensión
-#     if not file.filename.lower().endswith(('.png', '.jpg', '.jpeg')):
-#         flash('Solo se permiten archivos PNG, JPG', 'error')
-#         return redirect(url_for('index_modulo', modulo=modulo))
+    # Validar extensión
+    if not file.filename.lower().endswith(('.png', '.jpg', '.jpeg')):
+        flash('Solo se permiten archivos PNG, JPG', 'error')
+        return redirect(url_for('indexTecnologia'))
 
-#     if file:
-#         filename = secure_filename(file.filename)
-#         filepath_to_db_img = os.path.join('fotos', filename).replace("\\", "/")
-#         ruta_absoluta = os.path.join(app.root_path, 'static', filepath_to_db_img)
+    if file:
+        filename = secure_filename(file.filename)
+        filepath_to_db_img = os.path.join('fotos', filename).replace("\\", "/")
+        ruta_absoluta = os.path.join(bp.root_path, 'static', filepath_to_db_img)
 
-#         # Guardar en disco
-#         file.save(ruta_absoluta)
+        # Guardar en disco
+        file.save(ruta_absoluta)
 
-#         # Actualizar en BD
-#         cur = db.connection.cursor()
-#         cur.execute("""
-#             UPDATE indexssalud 
-#             SET imagen = %s 
-#             WHERE id = %s
-#         """, (filepath_to_db_img, id_producto))
-#         db.connection.commit()
-#         cur.close()
+        # Actualizar en BD
+        cur = db.connection.cursor()
+        cur.execute("""
+            UPDATE tecnologia_equipos 
+            SET imagen = %s 
+            WHERE id = %s
+        """, (filepath_to_db_img, id_producto))
+        db.connection.commit()
+        cur.close()
 
-#         flash('Imagen cargada correctamente', 'success')
-#         return redirect(url_for('index_modulo', modulo='modulo'))
+        flash('Imagen cargada correctamente', 'success')
+        return redirect(url_for('main.indexTecnologia'))
 
 # ---------------------------FUNCION PARA CARGAR PDFS DEL EQUIPO DESDE LA TABLA indexSalud EN EL CAMPO ACCIONES SUBIR_GUIA---------------------------- 
 # @app.route('/subir_pdf/<int:id_producto>', methods=['POST'])

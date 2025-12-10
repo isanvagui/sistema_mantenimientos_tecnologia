@@ -415,6 +415,25 @@
                                             <a href="{{ url_for('main.GET_EQUIPO_TECNOLOGIA', id=producto['id'], vista='indexTecnologia') }}" class="btn btn-secondary btn-sm"><FONT SIZE=2>Editar/Ver hoja de vida</FONT></a>
                                         </div>
                                         
+                                        <br>
+                                        <form action="{{ url_for('main.subir_imagen', id_producto=producto.id) }}" 
+                                            method="POST" enctype="multipart/form-data" style="display:inline;">
+                                            <input type="hidden" name="csrf_token" value="{{csrf_token()}}">
+                                            <!-- Input oculto -->
+                                            <input type="file" name="imagen_producto" 
+                                                id="file-input-{{ producto.id }}" 
+                                                style="display:none;" 
+                                                onchange="this.form.submit()">
+
+                                            <!-- Botón que abre el explorador de archivos -->
+                                            <div class="btn-eliminar">
+                                                <button type="button" class="btn btn-tabla btn-sm"
+                                                        onclick="document.getElementById('file-input-{{ producto.id }}').click();">
+                                                    Subir_imagen
+                                                </button>
+                                            </div> 
+                                        </form>
+
                                     </td>
                                 </tr>
                                 {% endfor %}
