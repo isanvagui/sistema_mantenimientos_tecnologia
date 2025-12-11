@@ -1134,6 +1134,8 @@ def ACTUALIZAR_EQUIPO_TECNOLOGIA(id):
         marca_equipo_tecnologia = request.form ['marca_equipo_tecnologia'] or None
         modelo_equipo_tecnologia = request.form ['modelo_equipo_tecnologia'] or None
         serial_equipo_tecnologia = request.form ['serial_equipo_tecnologia'] or None
+        ram = request.form ['ram'] or None
+        disco = request.form ['disco'] or None
         
         # PARA EL CHECKBOX Y SEMAFORO DE MANTENIMIENTO
         fecha_mantenimiento = request.form ['fecha_mantenimiento'] or None
@@ -1178,7 +1180,7 @@ def ACTUALIZAR_EQUIPO_TECNOLOGIA(id):
         # Obtener las fechas actuales antes de actualizar
         cur.execute(
             """ UPDATE tecnologia_equipos SET  nombre_equipo = %s, ubicacion_original = %s, software_instalado = %s, marca_equipo_tecnologia = %s, modelo_equipo_tecnologia = %s, 
-                serial_equipo_tecnologia =%s, fecha_mantenimiento = %s, vencimiento_mantenimiento = %s, fecha_calibracion = %s, vencimiento_calibracion = %s,
+                serial_equipo_tecnologia =%s, ram =%s, disco =%s, fecha_mantenimiento = %s, vencimiento_mantenimiento = %s, fecha_calibracion = %s, vencimiento_calibracion = %s,
                 fecha_ingreso = %s, periodicidad = %s, color = %s, periodicidad_calibracion = %s WHERE id = %s""",
             (
                 # cod_articulo,
@@ -1188,6 +1190,8 @@ def ACTUALIZAR_EQUIPO_TECNOLOGIA(id):
                 marca_equipo_tecnologia,
                 modelo_equipo_tecnologia,
                 serial_equipo_tecnologia,
+                ram,
+                disco,
                 fecha_mantenimiento,
                 vencimiento_mantenimiento,
                 fecha_calibracion,
