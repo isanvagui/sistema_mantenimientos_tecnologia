@@ -443,7 +443,7 @@
                 </div>
             </div>
             <!-- Modal de Préstamo -->
-            <div class="modal fade" id="modalPrestamo" tabindex="-1" aria-labelledby="modalPrestamoLabel" aria-hidden="true">
+            <!-- <div class="modal fade" id="modalPrestamo" tabindex="-1" aria-labelledby="modalPrestamoLabel" aria-hidden="true">
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
 
@@ -480,7 +480,7 @@
 
                 </div>
             </div>
-            </div>
+            </div> -->
          
         </div>
     </div>
@@ -652,12 +652,80 @@ document.addEventListener("DOMContentLoaded", function () {
 
 <!-- Scripts para actualizar fechas masivamente  -->
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        tooltipTriggerList.forEach(function (tooltipTriggerEl) {
-            new bootstrap.Tooltip(tooltipTriggerEl);
+document.getElementById("guardarSeleccionados").addEventListener("click", async function () {
+
+    const btn = this;
+    
+    // Desactivar botón y mostrar spinner
+    btn.disabled = true;
+    btn.innerHTML = `
+        <span class="spinner-border spinner-border-sm"></span>
+        Procesando...
+    `;
+
+    // Armar registros seleccionados (tu código actual)
+    const registros = window.equiposSeleccionadosGlobal || [];
+
+    const data = {
+        proveedorId: document.getElementById("selectProveedor").value,
+        personaId: document.getElementById("selectPersona").value,
+        ubicacionId: document.getElementById("selectUbicacion").value,
+        observacionesId: document.getElementById("selectObservaciones").value,
+        nuevaFecha: document.getElementById("nuevaFecha").value,
+        nuevaPeriodicidad: document.getElementById("nuevaPeriodicidad").value,
+        correoExterno: document.getElementById("inputCorreo").value,
+        registros: registros
+    };
+
+    try {
+        let response = await fetch("/mantenimientos-tecnologia/guardar_historialTecnologia", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "{{ csrf_token() }}"
+            },
+            body: JSON.stringify(data)
         });
-    });
+
+        let result = await response.json();
+
+        if (result.success) {
+            Swal.fire({
+                icon: "success",
+                title: "Guardado exitoso",
+                text: result.message,
+            });
+
+            // Cerrar modal
+            let modal = bootstrap.Modal.getInstance(document.getElementById("modalGuardar"));
+            modal.hide();
+
+            // Recargar tabla o página
+            setTimeout(() => location.reload(), 800);
+
+        } else {
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: result.message,
+            });
+
+            // Rehabilitar botón
+            btn.disabled = false;
+            btn.textContent = "Guardar seleccionados";
+        }
+
+    } catch (error) {
+        Swal.fire({
+            icon: "error",
+            title: "Error inesperado",
+            text: error.toString(),
+        });
+
+        btn.disabled = false;
+        btn.textContent = "Guardar seleccionados";
+    }
+});
 </script>
 
 <!-- Scripts para el checkbox (Para activar o desactivar manualmente desde la tabla.) -->
