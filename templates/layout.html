@@ -36,7 +36,7 @@
           data-bs-toggle="modal"
           data-bs-target="#modalGuardar"
           title="Actualizar fechas y guarda en historial" data-icon="🔁">
-           Actualización Masiva
+           Actualizar Fechas
       </a>
 
       <a href="{{ url_for('main.index_otros_equipos_tecnologia') }}" data-icon="📦"> Otros Equipos</a>
@@ -49,7 +49,7 @@
           data-bs-toggle="modal"
           data-bs-target="#modalOpciones"
           title="Actualizar fechas y guarda en historial" data-icon="🔁">
-           Actualización Masiva
+           Actualizar Fechas
       </a>
     {% elif request.path == url_for('main.equipos_debaja_tecnologia') %}
       <a href="{{ url_for('main.exportExcelDeBaja') }}" data-icon="📂"  id="btnExportarBaja"> Exportar Equipos De Baja</a>
