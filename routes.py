@@ -300,29 +300,29 @@ def add_equipos_tecnologia():
             flash(f"El código {cod_articulo} ya existe.", "error")
             return redirect(url_for('main.indexTecnologia'))
 
-        # ===== VALIDAR IMAGEN =====
+        # ===== MANEJO DE IMAGEN (OPCIONAL) =====
+        DEFAULT_IMAGE = "fotos/pcs-animado.jpg"
+        image_path_db = DEFAULT_IMAGE
+
         file = request.files.get('imagen_producto')
 
-        if not file or file.filename == "":
-            flash("Debe seleccionar una imagen.", "error")
-            return redirect(url_for('main.indexTecnologia'))
+        if file and file.filename:
+            if not allowed_image(file.filename):
+                flash("Formato inválido. Solo se permiten PNG, JPG, JPEG.", "error")
+                return redirect(url_for('main.indexTecnologia'))
 
-        if not allowed_image(file.filename):
-            flash("Formato inválido. Solo se permiten PNG, JPG, JPEG.", "error")
-            return redirect(url_for('main.indexTecnologia'))
+            os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-        # ===== ASEGURAR CARPETA =====
-        os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+            ext = os.path.splitext(file.filename)[1].lower()
+            unique_name = f"{uuid.uuid4().hex}{ext}"
+            save_path = os.path.join(UPLOAD_FOLDER, unique_name)
 
-        # ===== GENERAR NOMBRE ÚNICO =====
-        ext = os.path.splitext(file.filename)[1]
-        unique_name = f"{uuid.uuid4().hex}{ext}"
-        save_path = os.path.join(UPLOAD_FOLDER, unique_name)
-
-        file.save(save_path)
-
-        # Ruta relativa para guardar en BD:
-        image_path_db = f"fotos/{unique_name}"
+            try:
+                file.save(save_path)
+                image_path_db = f"fotos/{unique_name}"
+            except Exception as e:
+                flash("Error al guardar la imagen. Se usará imagen por defecto.", "warning")
+                image_path_db = DEFAULT_IMAGE
 
         # ===== RESTO DE CAMPOS (limpios) =====
         fecha_ingreso = request.form.get("fecha_ingreso") or None
@@ -423,6 +423,7 @@ def add_equipos_tecnologia():
 # ---------------------------INICIA INSERT MASIVO DE EQUIPOS CSV DE TECNOLOGIA-----------------------------
 @bp.route('/insert_csvTecnologia', methods=['POST'])
 def INSERT_CSV_TECNOLOGIA():
+    DEFAULT_IMAGE = "fotos/pcs-animado.jpg"
     if request.method == 'POST':
         file = request.files['file']
         if not file:
@@ -459,11 +460,15 @@ def INSERT_CSV_TECNOLOGIA():
                 continue  # Salta esta fila duplicada
 
             # Verifica que la imagen exista
-            imagen = row[19]
-            imagen_path = os.path.join(fotos_folder, imagen)
-            if not os.path.isfile(imagen_path):
-                flash(f'Imagen no encontrada: {imagen}', 'error')
-                continue  # Salta esta fila
+            imagen_csv = row[19].strip() if len(row) > 19 else ""
+            imagen_csv = secure_filename(imagen_csv)
+
+            imagen_path = os.path.join(fotos_folder, imagen_csv)
+
+            if imagen_csv and os.path.isfile(imagen_path):
+                ruta_imagen_db = f"fotos/{imagen_csv}"
+            else:
+                ruta_imagen_db = DEFAULT_IMAGE
 
             # Preparar fila válida para insertar luego
             datos_validos.append(row)
