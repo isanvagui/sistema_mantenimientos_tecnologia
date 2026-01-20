@@ -952,13 +952,17 @@ def guardar_historial_tecnologia():
         cur.execute("SELECT nombre_contratista FROM tecnologia_persona_responsable WHERE id = %s", (persona_id,))
         persona_nombre = (cur.fetchone() or [None])[0] or "No asignado"
 
-
+        lista_equipos = []
         for r in registros:
             tipo = r.get('tipo')  # fecha_preventivo o fecha_correctivo
             producto_id = r.get('productoId')
             nueva_periodicidad = int(data.get('nuevaPeriodicidad', 0))
             nombre_equipo = r.get('nombreEquipo')
             # ubicacion = r.get('ubicacionOriginal')
+            lista_equipos.append({
+                "nombre_equipo": nombre_equipo,
+                "cod_articulo": producto_id
+            })
 
             # Obtener datos actuales para historial preventivo
             if tipo == "fecha_mantenimiento":
@@ -1032,17 +1036,17 @@ def guardar_historial_tecnologia():
 
         db.connection.commit()
 
-        send_mantenimiento_notification_html(
-            nombre_equipo=nombre_equipo,
-            cod_articulo=producto_id,
-            nombre_tecnico=nombre_tecnico,  # puedes obtenerlo con una consulta
-            ubicacion_original=ubicacion_nombre,  # idem, desde ubicacion_id
-            persona_responsable=persona_nombre,   # desde persona_id
-            # observaciones=observaciones_id,
-            email_recibe=correo_externo,
-            fecha_mantenimiento=nueva_fecha.strftime("%Y-%m-%d"),
-            tipo_mantenimiento=tipo
-        )
+        if lista_equipos:
+            send_mantenimiento_notification_html(
+                lista_equipos,
+                nombre_tecnico=nombre_tecnico,  # puedes obtenerlo con una consulta
+                ubicacion_original=ubicacion_nombre,  # idem, desde ubicacion_id
+                persona_responsable=persona_nombre,   # desde persona_id
+                # observaciones=observaciones_id,
+                email_recibe=correo_externo,
+                fecha_mantenimiento=nueva_fecha.strftime("%Y-%m-%d"),
+                tipo_mantenimiento=tipo
+            )
         return jsonify({'success': True, 'message': 'Fechas y registros actualizados correctamente.'})
 
     except Exception as e:

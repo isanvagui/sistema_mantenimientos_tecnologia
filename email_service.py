@@ -21,7 +21,7 @@ def send_email_with_logo(subject, body_html, recipients):
     <div style="display: flex; align-items: center; justify-content: flex-start;">
         <img src="cid:logo" alt="Logo" style="height: 100px; margin-right: 15px;">
         <span style="font-weight: bold; font-size: 14px;">
-            Notificaciones<br>
+            Notificaciones Mantenimientos<br>
             I.U Colegio Mayor de Antioquia<br>
             Cra 78 Nº 65 - 46 Robledo
         </span>
@@ -63,21 +63,27 @@ def send_email_with_logo(subject, body_html, recipients):
 
 
 def send_mantenimiento_notification_html(
-    cod_articulo, nombre_equipo, nombre_tecnico, ubicacion_original,
+    lista_equipos, nombre_tecnico, ubicacion_original,
     persona_responsable, email_recibe, fecha_mantenimiento, tipo_mantenimiento
 ):
     """
     Construye el HTML del préstamo y lo envía a ambas partes.
     """
     tipo = "Preventivo" if tipo_mantenimiento == "fecha_mantenimiento" else "Correctivo"
-    subject = f"Mantenimiento de equipo: {nombre_equipo}"
+    subject = f"Mantenimiento {tipo}"
+
+    # Lista HTML de equipos
+    equipos_html = "".join([
+        f"<li><b>🖥️ Equipo:</b> {e['nombre_equipo']} (Placa: {e['cod_articulo']})</li>"
+        for e in lista_equipos
+    ])
 
     # HTML del cuerpo (sin firma)
     body_html = f"""
     <p>Hola,</p>
     <p>Se ha registrado un mantenimiento <b>{tipo}</b> en el sistema <b>Mantenimientos Tecnología</b> con la siguiente información:</p>
     <ul>
-        <li><b>🖥️ Equipo:</b> {nombre_equipo} (Placa: {cod_articulo})</li>
+        {equipos_html}
         <li><b>👤 Tecnico responsable:</b> {nombre_tecnico}</li>
         <li><b>📍 Ubicación del equipo:</b> {ubicacion_original}</li>
         <li><b>👤 Responsable del equipo:</b> {persona_responsable}</li>
