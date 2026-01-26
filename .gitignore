@@ -162,4 +162,3 @@ cython_debug/
 # Sphinx documentation
 static/fotos/
 static/pdf/
-app.py
