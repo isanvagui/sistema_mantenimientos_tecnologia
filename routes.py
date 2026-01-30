@@ -3,8 +3,9 @@ from io import TextIOWrapper, StringIO, BytesIO
 
 
 from flask import request, jsonify, send_file, current_app
-from openpyxl import load_workbook
-from openpyxl.styles import Alignment
+from openpyxl import load_workbook, Workbook
+from openpyxl.styles import Alignment, Font
+from openpyxl.worksheet.datavalidation import DataValidation
 
 
 from flask import Flask, render_template, request, redirect, url_for, flash, Response
@@ -332,6 +333,20 @@ def add_equipos_tecnologia():
         vencimiento_calibracion = request.form.get("vencimiento_calibracion") or None
 
         estado_equipo = request.form.get("estado_equipo")
+
+        enable = 0
+        de_baja = 0
+        otros_equipos_tecnologia = 0
+
+        if estado_equipo in ("USO", "BODEGA"):
+            enable = 1
+
+        elif estado_equipo == "DE BAJA":
+            de_baja = 1
+
+        elif estado_equipo == "OTROS EQUIPOS":
+            otros_equipos_tecnologia = 1
+
         fecha_de_baja = date.today() if estado_equipo == "DE BAJA" else None
 
         # ===== INSERT EN tecnología_equipos =====
@@ -342,9 +357,9 @@ def add_equipos_tecnologia():
                 estado_equipo, ubicacion_original, ram, disco, proveedor_responsable, 
                 color, checkbox_mantenimiento, checkbox_calibracion, imagen, 
                 software_instalado, marca_equipo_tecnologia, modelo_equipo_tecnologia, 
-                serial_equipo_tecnologia, id_persona_responsable, otros_equipos_tecnologia, de_baja
+                serial_equipo_tecnologia, id_persona_responsable, enable, otros_equipos_tecnologia, de_baja
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """, (
             cod_articulo,
             nombre_equipo,
@@ -368,8 +383,9 @@ def add_equipos_tecnologia():
             request.form.get("modelo_equipo_tecnologia"),
             request.form.get("serial_equipo_tecnologia"),
             request.form.get("id_persona_responsable"),
-            1 if estado_equipo == "OTROS EQUIPOS" else 0,
-            1 if estado_equipo == "DE BAJA" else 0
+            enable,
+            otros_equipos_tecnologia,
+            de_baja
         ))
 
         # ===== INSERT EN DE BAJA =====
@@ -383,7 +399,7 @@ def add_equipos_tecnologia():
                     software_instalado, marca_equipo_tecnologia, modelo_equipo_tecnologia, 
                     serial_equipo_tecnologia, fecha_de_baja, id_persona_responsable
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """, (
                 cod_articulo,
                 nombre_equipo,
@@ -415,158 +431,201 @@ def add_equipos_tecnologia():
         flash("Equipo agregado correctamente", "success")
 
         if estado_equipo == "OTROS EQUIPOS":
-            return redirect(url_for('main.indexOtrosEquiposTecnologia'))
+            return redirect(url_for('main.index_otros_equipos_tecnologia'))
 
         return redirect(url_for('main.indexTecnologia'))
 
     return render_template('indexTecnologia.html')
 # ---------------------------INICIA INSERT MASIVO DE EQUIPOS CSV DE TECNOLOGIA-----------------------------
-@bp.route('/insert_csvTecnologia', methods=['POST'])
-def INSERT_CSV_TECNOLOGIA():
+@bp.route('/insert_excelTecnologia', methods=['POST'])
+def insert_excel_tecnologia():
+
     DEFAULT_IMAGE = "fotos/pcs-animado.jpg"
-    if request.method == 'POST':
-        file = request.files['file']
-        if not file:
-            flash('No seleccionó ningún archivo')
-            return redirect(url_for('indexTecnologia'))
 
-        file = TextIOWrapper(file, encoding='latin-1')
-        csv_reader = csv.reader(file)
-        next(csv_reader)  # Saltar encabezado
+    file = request.files.get('file')
 
-        cur = db.connection.cursor()
-        fotos_folder = os.path.join(os.path.dirname(__file__), 'static', 'fotos')
+    if not file or not file.filename.endswith('.xlsx'):
+        flash("Debe subir un archivo Excel (.xlsx)", "error")
+        return redirect(url_for('main.indexTecnologia'))
 
-        codigos_duplicados = []
-        datos_validos = []
+    wb = load_workbook(file, data_only=True)
+    ws = wb.active
 
-        for row in csv_reader:
-            cod_articulo = row[0]
+    cur = db.connection.cursor()
 
-            try:
-                cod_articulo = int(cod_articulo)
-            except ValueError:
-                flash(f'Código inválido: {cod_articulo}', 'error')
-                continue  # Salta esta fila
+    # ===============================
+    # MAPS (consultados una sola vez)
+    # ===============================
 
-            cur.execute("SELECT cod_articulo FROM tecnologia_equipos WHERE cod_articulo = %s", (cod_articulo,))
-            codigo_indextecnologia = cur.fetchone()
+    cur.execute("SELECT id, nombre_tecnico FROM tecnologia_tecnico_responsable")
+    proveedor_map = {p[1].strip().lower(): p[0] for p in cur.fetchall()}
 
-            cur.execute("SELECT cod_articulo FROM tecnologia_equipos_debaja WHERE cod_articulo = %s", (cod_articulo,))
-            codigo_debaja_tecnologia = cur.fetchone()
+    cur.execute("SELECT id, documento_identidad FROM tecnologia_persona_responsable")
+    persona_map = {str(p[1]).strip().lower(): p[0] for p in cur.fetchall()}
 
-            if codigo_indextecnologia or codigo_debaja_tecnologia:
-                codigos_duplicados.append(str(cod_articulo))
-                continue  # Salta esta fila duplicada
+    codigos_duplicados = []
+    insertados = 0
 
-            # Verifica que la imagen exista
-            imagen_csv = row[19].strip() if len(row) > 19 else ""
-            imagen_csv = secure_filename(imagen_csv)
+    # ===============================
+    # ITERAR FILAS (saltando header)
+    # ===============================
 
-            imagen_path = os.path.join(fotos_folder, imagen_csv)
+    for i, row in enumerate(ws.iter_rows(min_row=2, values_only=True), start=2):
 
-            if imagen_csv and os.path.isfile(imagen_path):
-                ruta_imagen_db = f"fotos/{imagen_csv}"
-            else:
-                ruta_imagen_db = DEFAULT_IMAGE
+        try:
 
-            # Preparar fila válida para insertar luego
-            datos_validos.append(row)
-
-            # Se construye diccionario de tecnicos, por nombre de tecnicos: id
-            cur.execute("SELECT id, nombre_tecnico FROM tecnologia_tecnico_responsable")
-            proveedores = cur.fetchall()
-            proveedor_map = {p[1].strip().lower(): p[0] for p in proveedores}
-
-            # Se construye diccionario de personas, por nombre de documento de identidad: id
-            cur.execute("SELECT id, documento_identidad FROM tecnologia_persona_responsable")
-            personas = cur.fetchall()
-            persona_map = {str(p[1]).strip().lower(): p[0] for p in personas}
-
-        # Insertar solo los datos válidos
-        for row in datos_validos:
             cod_articulo = int(row[0])
             nombre_equipo = row[1]
-            fecha_ingreso = row[2] or None
-            periodicidad = int(row[3]) if row[3].strip() else None
-            fecha_mantenimiento = row[4] or None
-            vencimiento_mantenimiento = row[5] or None
-            periodicidad_calibracion = int(row[6]) if row[6].strip() else None
-            fecha_calibracion = row[7] or None
-            vencimiento_calibracion = row[8] or None
-            tipo_equipo = row[9] or None
-            estado_equipo = row[10]
-            # ubicacion_original = row[11]
-            nombre_tecnico = row[11].strip().lower()
-            proveedor_responsable = proveedor_map.get(nombre_tecnico)
-            nombre_persona = row[12].strip().lower()
-            id_persona_responsable = persona_map.get(nombre_persona) 
 
-            if not id_persona_responsable:
-                flash(f"Persona '{row[12]}' no encontrada en la base de datos.", 'error')
+            # ---------------------------
+            # EXISTENCIA
+            # ---------------------------
+            cur.execute("SELECT 1 FROM tecnologia_equipos WHERE cod_articulo=%s", (cod_articulo,))
+            if cur.fetchone():
+                codigos_duplicados.append(str(cod_articulo))
                 continue
-            
+
+            # ---------------------------
+            # CAMPOS FECHA
+            # ---------------------------
+            fecha_ingreso = row[2]
+            periodicidad = row[3]
+            fecha_mantenimiento = row[4]
+            vencimiento_mantenimiento = row[5]
+            periodicidad_calibracion = row[6]
+            fecha_calibracion = row[7]
+            vencimiento_calibracion = row[8]
+
+            tipo_equipo = row[9]
+            estado_equipo = str(row[10]).strip().upper()
+
+            tecnico_nombre = str(row[11]).strip().lower()
+            proveedor_id = proveedor_map.get(tecnico_nombre)
+
+            persona_nombre = str(row[12]).strip().lower()
+            persona_id = persona_map.get(persona_nombre)
+
+            if not persona_id:
+                flash(f"Fila {i}: persona '{row[12]}' no existe", "error")
+                continue
+
             ram = row[13]
             disco = row[14]
-            marca_equipo_tecnologia = row[15]
-            modelo_equipo_tecnologia = row[16]
-            serial_equipo_tecnologia = row[17]
-            software_instalado = row [18]
-            imagen = row[19]
+            marca = row[15]
+            modelo = row[16]
+            serial = row[17]
+            software = row[18]
 
+            imagen = secure_filename(row[19]) if row[19] else None
 
-            ruta_imagen_db = f'fotos/{secure_filename(imagen)}'
-            checkbox_mantenimiento = 'Inactivo'
-            checkbox_calibracion = 'Inactivo'
+            ruta_imagen = f"fotos/{imagen}" if imagen else DEFAULT_IMAGE
+
+            checkbox_mantenimiento = "Inactivo"
+            checkbox_calibracion = "Inactivo"
+            color = "verde"
+
             fecha_de_baja = date.today() if estado_equipo == "DE BAJA" else None
-            color = 'verde'
 
-            if estado_equipo == 'DE BAJA':
-                # Insertar en la tabla tecnologia_equipos_debaja
-                cur.execute("""INSERT INTO tecnologia_equipos_debaja (cod_articulo, nombre_equipo, fecha_mantenimiento, vencimiento_mantenimiento, fecha_calibracion, vencimiento_calibracion, fecha_ingreso, tipo_equipo,
-                           estado_equipo, ram, disco, proveedor_responsable, color, checkbox_mantenimiento, checkbox_calibracion, imagen, software_instalado, marca_equipo_tecnologia, modelo_equipo_tecnologia, serial_equipo_tecnologia, fecha_de_baja, id_persona_responsable) 
-                        VALUES ( %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
-                (
-                    cod_articulo,
-                    nombre_equipo,
-                    fecha_mantenimiento,
-                    vencimiento_mantenimiento,
-                    fecha_calibracion,
-                    vencimiento_calibracion,
-                    fecha_ingreso,
-                    # periodicidad,
-                    tipo_equipo,
-                    estado_equipo,
-                    # ubicacion_original,
-                    ram,
-                    disco,
-                    proveedor_responsable,
-                    color,
-                    checkbox_mantenimiento,
-                    checkbox_calibracion,
-                    ruta_imagen_db,
-                    software_instalado,
-                    # cuidados_basicos,
-                    # periodicidad_calibracion,
-                    marca_equipo_tecnologia,
-                    modelo_equipo_tecnologia,
-                    serial_equipo_tecnologia,
-                    fecha_de_baja,
-                    id_persona_responsable,
-                    # color,
-                    # checkbox_mantenimiento,
-                    # checkbox_calibracion,
-                    # fecha_de_baja,
-                    
-                ),
-            )
+            # ---------------------------
+            # BANDERAS
+            # ---------------------------
+
+            estado_equipo = estado_equipo.upper().strip()
+
+            if estado_equipo in ("USO", "BODEGA"):
+                enable = 1
+                de_baja = 0
+                otros = 0
+
+            elif estado_equipo == "DE BAJA":
+                enable = 0
+                de_baja = 1
+                otros = 0
+
+            elif estado_equipo == "OTROS EQUIPOS":
+                enable = 0
+                de_baja = 0
+                otros = 1
+
             else:
+                flash(f"Fila {i}: estado '{estado_equipo}' no válido", "error")
+                continue
 
-                # Insertar en la tabla tecnologia_equipos
-                cur.execute("""INSERT INTO tecnologia_equipos (cod_articulo, nombre_equipo, fecha_mantenimiento, vencimiento_mantenimiento, fecha_calibracion, vencimiento_calibracion, fecha_ingreso, tipo_equipo,
-                           estado_equipo, ram, disco, proveedor_responsable, color, checkbox_mantenimiento, checkbox_calibracion, imagen, software_instalado, marca_equipo_tecnologia, modelo_equipo_tecnologia, serial_equipo_tecnologia, id_persona_responsable) 
-                        VALUES (  %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
-                (
+            # ===========================
+            # INSERT PRINCIPAL
+            # ===========================
+
+            cur.execute("""
+                INSERT INTO tecnologia_equipos (
+                    cod_articulo, nombre_equipo,
+                    fecha_mantenimiento, vencimiento_mantenimiento,
+                    fecha_calibracion, vencimiento_calibracion,
+                    fecha_ingreso, tipo_equipo,
+                    estado_equipo, ram, disco,
+                    proveedor_responsable,
+                    color, checkbox_mantenimiento, checkbox_calibracion,
+                    imagen, software_instalado,
+                    marca_equipo_tecnologia,
+                    modelo_equipo_tecnologia,
+                    serial_equipo_tecnologia,
+                    id_persona_responsable,
+                    enable, de_baja, otros_equipos_tecnologia
+                )
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,
+                        %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,
+                        %s,%s,%s)
+            """, (
+                cod_articulo,
+                nombre_equipo,
+                fecha_mantenimiento,
+                vencimiento_mantenimiento,
+                fecha_calibracion,
+                vencimiento_calibracion,
+                fecha_ingreso,
+                tipo_equipo,
+                estado_equipo,
+                ram,
+                disco,
+                proveedor_id,
+                color,
+                checkbox_mantenimiento,
+                checkbox_calibracion,
+                ruta_imagen,
+                software,
+                marca,
+                modelo,
+                serial,
+                persona_id,
+                enable,
+                de_baja,
+                otros
+            ))
+
+            # ===========================
+            # INSERT DE BAJA
+            # ===========================
+
+            if estado_equipo == "DE BAJA":
+
+                cur.execute("""
+                    INSERT INTO tecnologia_equipos_debaja (
+                        cod_articulo, nombre_equipo,
+                        fecha_mantenimiento, vencimiento_mantenimiento,
+                        fecha_calibracion, vencimiento_calibracion,
+                        fecha_ingreso, tipo_equipo,
+                        estado_equipo, ram, disco,
+                        proveedor_responsable,
+                        color, checkbox_mantenimiento, checkbox_calibracion,
+                        imagen, software_instalado,
+                        marca_equipo_tecnologia,
+                        modelo_equipo_tecnologia,
+                        serial_equipo_tecnologia,
+                        fecha_de_baja,
+                        id_persona_responsable
+                    )
+                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,
+                            %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                """, (
                     cod_articulo,
                     nombre_equipo,
                     fecha_mantenimiento,
@@ -574,42 +633,43 @@ def INSERT_CSV_TECNOLOGIA():
                     fecha_calibracion,
                     vencimiento_calibracion,
                     fecha_ingreso,
-                    # periodicidad,
                     tipo_equipo,
                     estado_equipo,
-                    # ubicacion_original,
                     ram,
                     disco,
-                    proveedor_responsable,
+                    proveedor_id,
                     color,
                     checkbox_mantenimiento,
                     checkbox_calibracion,
-                    ruta_imagen_db,
-                    software_instalado,
-                    # cuidados_basicos,
-                    # periodicidad_calibracion,
-                    marca_equipo_tecnologia,
-                    modelo_equipo_tecnologia,
-                    serial_equipo_tecnologia,
-                    id_persona_responsable,
-                    # color,
-                    # checkbox_mantenimiento,
-                    # checkbox_calibracion,
-                    # fecha_de_baja,
+                    ruta_imagen,
+                    software,
+                    marca,
+                    modelo,
+                    serial,
+                    fecha_de_baja,
+                    persona_id
+                ))
 
-                ),
-            )
+            insertados += 1
 
-        db.connection.commit()
+        except Exception as e:
+            flash(f"Fila {i}: error -> {str(e)}", "error")
 
-        if codigos_duplicados:
-            flash(f'Los siguientes códigos ya existen y no fueron insertados: {", ".join(codigos_duplicados)}', 'error')
-        if datos_validos:
-            flash(f'{len(datos_validos)} equipos importados exitosamente.', 'success')
-        else:
-            flash('No se importó ningún equipo.', 'error')
+    db.connection.commit()
 
-        return redirect(url_for('main.index_modulo', modulo='modulo'))
+    # ===============================
+    # MENSAJES
+    # ===============================
+
+    if codigos_duplicados:
+        flash(f"Códigos duplicados no insertados: {', '.join(codigos_duplicados)}", "warning")
+
+    if insertados:
+        flash(f"{insertados} equipos importados correctamente.", "success")
+    else:
+        flash("No se insertó ningún equipo.", "error")
+
+    return redirect(url_for('main.indexTecnologia'))
 # ---------------------------FINALIZA INSERT MASIVO CSV DE SALUD-----------------------------
     
 # ================================CHECKBOX PROGRAMACIÓN MANTENIMIENTO TECNOLOGIA===============================
@@ -1900,8 +1960,124 @@ def exportExcelDeBaja():
         return jsonify({"error": str(e)}), 400
 # ---------------------------FINALIZA EXPORTACIÓN DE CSV DE EQUIPOS DE EQUIPOS DE BAJA DE TECNOLIGIA-----------------------------
 
-# ==========================FINALIZA FUNCIÓN EQUIPOS DADOS DE BAJA SALUD=====================
+# ----------------INICIA FUNCIÓN DE DESCARGUE DE PLANTILLA PARA INSERT MASIVO ----------------------
+@bp.route('/download_template_excel')
+def download_template_excel_tecnologia():
 
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "PLANTILLA_TECNOLOGIA"
+
+    # ======================================
+    # ENCABEZADOS
+    # ======================================
+
+    headers = [
+        "Placa Equipo",
+        "Nombre Equipo",
+        "Fecha de Compra",
+        "Periodicidad Preventivo",
+        "Mantenimiento Preventivo Actual",
+        "Mantenimiento Preventivo Proximo",
+        "Periodicidad Correctivo",
+        "Mantenimiento Correctivo Actual",
+        "Mantenimiento Correctivo Proximo",
+        "Tipo de Equipo",
+        "Estado de Equipo",
+        "Tecnico Responsable",
+        "Persona Responsable del Equipo",
+        "Memoria Ram",
+        "Disco Duro",
+        "Marca Equipo",
+        "Modelo Equipo",
+        "Serial Equipo",
+        "Software Instalado",
+        "Ruta Imagen"
+    ]
+
+    for col, header in enumerate(headers, start=1):
+        ws.cell(row=1, column=col, value=header)
+
+    # ======================================
+    # VALIDACIONES
+    # ======================================
+
+    # ---- Tipo Equipo
+    tipos_equipo = DataValidation(
+        type="list",
+        formula1='"PORTATIL,TEU (Todo en Uno),CPU,TABLET"',
+        allow_blank=True
+    )
+
+    ws.add_data_validation(tipos_equipo)
+    tipos_equipo.add("J2:J1000")
+
+    # ---- Estado Equipo
+    estados_equipo = DataValidation(
+        type="list",
+        formula1='"USO,BODEGA,DE BAJA,OTROS EQUIPOS"',
+        allow_blank=True
+    )
+
+    ws.add_data_validation(estados_equipo)
+    estados_equipo.add("K2:K1000")
+
+    # ======================================
+    # ESTILO ENCABEZADOS
+    # ======================================
+
+    for col in ws[1]:
+        col.font = Font(bold=True)
+        col.alignment = Alignment(horizontal="center")
+        ws.column_dimensions[col.column_letter].width = 28
+
+    # ======================================
+    # FILA DATOS EJEMPLO
+    # ======================================
+
+    datos = [
+        "1",
+        "T1",
+        "2022/01/01 (Ó CAMPO VACIO)",
+        "(NUMERO DE MESES 6-12 Ó CAMPO VACIO)",
+        "2022/01/01 (Ó CAMPO VACIO)",
+        "2022/01/01 (Ó CAMPO VACIO)",
+        "(NUMERO DE MESES 6-12 Ó CAMPO VACIO)",
+        "2022/01/01 (Ó CAMPO VACIO)",
+        "2022/01/01 (Ó CAMPO VACIO)",
+        "SELECCIONE UNA OPCIÓN",
+        "SELECCIONE UNA OPCIÓN",
+        "",
+        "123456(NÚMERO DE DOCTO DEL LIDER DEL PROCESO SIN PUNTOS)",
+        "8GB",
+        "500GB",
+        "LENOVO THINKPAD",
+        "21DBS0NC02",
+        "DMPQJ02",
+        "Windows 10,Office 2021,7-zip, Adobe, Bitdefender, Google Drive, PowerBI",
+        ""
+    ]
+
+    for col, value in enumerate(datos, start=1):
+        ws.cell(row=2, column=col, value=value)
+
+    # ======================================
+    # DESCARGAR ARCHIVO
+    # ======================================
+
+    stream = BytesIO()
+    wb.save(stream)
+    stream.seek(0)
+
+    return send_file(
+        stream,
+        as_attachment=True,
+        download_name="plantilla_carga_inventario_tecnologia.xlsx",
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+# ----------------INICIA FUNCIÓN DE DESCARGUE DE PLANTILLA PARA INSERT MASIVO ----------------------
+
+# ==========================FINALIZA FUNCIÓN EQUIPOS DADOS DE BAJA SALUD=====================
 
 # FUNCIÓN ELIMINAR PARA INDEXSSALUD
 # @app.route('/delete_productoSalud/<string:id>')

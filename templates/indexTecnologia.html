@@ -174,9 +174,9 @@
 
             <!-- New form for inserting CSV -->
             <div class="card-equipos-masivos" id="formContain" style="display: none;">
-                <form  action="{{ url_for('main.INSERT_CSV_TECNOLOGIA') }}" method="POST" enctype="multipart/form-data">
+                <form  action="{{ url_for('main.insert_excel_tecnologia') }}" method="POST" enctype="multipart/form-data">
                     <div class="form-group">
-                        <input type="file" name="file" accept=".csv" class="custom-file-input" required>
+                        <input type="file" name="file" accept=".xlsx" class="custom-file-input" required>
                     </div>
                     <!------ linea de token es necesaria ya que el sistema lo solicita-->
                     <input type="hidden" name="csrf_token" value="{{csrf_token() }}" />
@@ -642,10 +642,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (formContain.style.display === 'none' || formContain.style.display === '') {
             formContain.style.display = 'block';
-            toggleBtn.textContent = ' Ocultar CSV';
+            toggleBtn.textContent = ' Ocultar .xlsx';
         } else {
             formContain.style.display = 'none';
-            toggleBtn.textContent = ' Agregar Equipos Masivos CSV';
+            toggleBtn.textContent = ' Cargar Equipos Masivos .xlsx';
         }
     });
 </script>

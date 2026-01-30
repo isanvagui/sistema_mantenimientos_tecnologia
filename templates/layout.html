@@ -29,7 +29,7 @@
     {% if request.path == url_for('main.indexTecnologia') %}
       <a href="{{ url_for('main.AGREGAR_NUEVA_PERSONA_TECNOLOGIA') }}" data-icon="👨‍💼"> Agregar Lider Responsable</a>
       <a id="toggleFormBtn" class="btn-indexSalud" data-icon="➕"> Agregar Equipo Manual</a>
-      <a id="toggleForm" class="btn-indexSalud" data-icon="📩"> Agregar Equipos Masivos .CSV</a>
+      <a id="toggleForm" class="btn-indexSalud" data-icon="📩"> Cargar Equipos Masivos .xlsx</a>
       
       <a id="toggleFor"
           class="btn-indexSalud"
@@ -43,6 +43,7 @@
       
       <a href="{{ url_for('main.equipos_debaja_tecnologia') }}" data-icon="🗑️"> Equipos de Baja</a>
       <a href="{{ url_for('main.exportCsv') }}" data-icon="📄"> Exportar Equipos Activos</a>
+      <a href="{{ url_for('main.download_template_excel_tecnologia') }}" data-icon="⬇️"> Descargar plantilla Excel</a>
     {% elif request.path == url_for('main.index_otros_equipos_tecnologia') %}
       <a id="toggleFor"
           class="btn-indexSalud"
