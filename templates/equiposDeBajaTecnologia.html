@@ -23,6 +23,7 @@
                                     <th>Fecha Compra</th>
                                     <th>Fecha de Baja</th>
                                     <th>Tipo Equipo</th>
+                                    <th>Software</th>
                                     <th>Estado Equipo</th>
                                     <!-- <th>Ubicación original</th> -->
                                     <!-- <th>Responsable del Equipo</th> -->
@@ -32,7 +33,7 @@
                             <tbody>
                                 {% for producto in equipos_de_baja_tecnologia %}
                                 <tr>
-                                    <td>
+                                    <!-- <td>
                                         <input 
                                             type="checkbox" 
                                             class="equipo-checkbox"
@@ -40,17 +41,31 @@
                                             data-nombre="{{ producto.nombre_equipo }}">
 
                                         <span>{{ producto.cod_articulo }}</span>
-                                    </td>
+                                    </td> -->
+                                    <td>{{ producto.cod_articulo }}</td>
                                     <td>{{ producto.nombre_equipo }}</td>
                                     <td>{{ producto.fecha_ingreso }}</td>
                                     <td>{{ producto.fecha_de_baja }}</td>
                                     <td>{{ producto.tipo_equipo }}</td>
+                                    <td>{{ producto.software_instalado }}</td>
                                     <td>{{ producto.estado_equipo }}</td>
 
                                     <td>
                                         <div class="text-center mt-2">
                                             <a href="{{ url_for('main.GET_EQUIPO_TECNOLOGIA', id=producto['id'], vista='equiposDeBajaTecnologia') }}" class="btn btn-secondary btn-sm"><FONT SIZE=2>Editar/Ver hoja de vida</FONT></a>
                                         </div>
+
+                                        <br>
+                                        <!-- Botón para ver PDF DE BAJA -->
+                                        {% if producto.pdf_debaja %}
+                                            <a href="{{ url_for('main.ver_pdf_baja', filename=producto.pdf_debaja.replace('pdf/', '')) }}"
+                                            target="_blank"
+                                            class="btn btn-tabla btn-sm">
+                                                Ver pdf de baja
+                                            </a>
+                                        {% else %}
+                                            <span class="text-muted">SIN GUIA</span>
+                                        {% endif %}
 
                                     </td>
                                 </tr>

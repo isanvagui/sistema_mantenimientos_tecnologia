@@ -250,3 +250,11 @@ table.dataTable {
 .btn-tabla:hover {
     background-color: rgba(37, 202, 205, 1); /* Color más claro para hover */
 }
+
+/* para los bordes de los modales*/
+.modal-borde {
+    border: 3px solid #060606;
+    border-radius: 12px;
+    background-color: rgb(248, 251, 252);
+    /* box-shadow: 0 0 15px rgba(220, 53, 69, 0.4); */
+}

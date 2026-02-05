@@ -18,7 +18,7 @@ from dateutil.relativedelta import relativedelta
 import os
 import uuid
 from werkzeug.utils import secure_filename
-
+from flask import send_from_directory
 
 from flask import Flask, render_template, request, jsonify 
 
@@ -36,13 +36,10 @@ from datetime import datetime
 
 bp = Blueprint('main', __name__)
 
+UPLOAD_FOLDER_PDF = "/var/www/software_inventario_laboratorios/static/pdf"
+ALLOWED_PDF = {"pdf"}
 UPLOAD_FOLDER = "/var/www/sistema_mantenimientos_tecnologia/static/fotos"
 ALLOWED_EXTENSIONS = {".png", ".jpg", ".jpeg"}
-
-# Inicializo las extenciones
-# csrf = CSRFProtect(bp)
-# db = MySQL(bp)
-# login_manager_app = LoginManager(bp)
 
 # @bp.context_processor
 # def link_onedrive_mantenimiento():
@@ -283,7 +280,6 @@ def allowed_image(filename):
 @bp.route('/add_equipos_tecnologia', methods=['GET', 'POST'])
 def add_equipos_tecnologia():
     if request.method == 'POST':
-
         # ===== VALIDAR CAMPOS =====
         cod_articulo = request.form.get('cod_articulo')
         nombre_equipo = request.form.get('nombre_equipo')
@@ -327,12 +323,37 @@ def add_equipos_tecnologia():
 
         # ===== RESTO DE CAMPOS (limpios) =====
         fecha_ingreso = request.form.get("fecha_ingreso") or None
-        fecha_mantenimiento = request.form.get("fecha_mantenimiento") or None
-        vencimiento_mantenimiento = request.form.get("vencimiento_mantenimiento") or None
-        fecha_calibracion = request.form.get("fecha_calibracion") or None
-        vencimiento_calibracion = request.form.get("vencimiento_calibracion") or None
-
         estado_equipo = request.form.get("estado_equipo")
+
+        # ===== MANEJO DE PDF DE BAJA (SOLO SI ES DE BAJA) =====
+        pdf_path_db = None
+        
+        if estado_equipo == "DE BAJA":
+            pdf_file = request.files.get("pdf_debaja")
+
+            if not pdf_file or not pdf_file.filename:
+                flash("Debe adjuntar el acta de baja en PDF.", "error")
+                return redirect(url_for("main.indexTecnologia"))
+
+            if not allowed_pdf(pdf_file.filename):
+                flash("El documento debe ser PDF.", "error")
+                return redirect(url_for("main.indexTecnologia"))
+
+            os.makedirs(UPLOAD_FOLDER_PDF, exist_ok=True)
+
+            # ✅ (recomendado) conservar nombre real y evitar colisiones
+            original_name = secure_filename(pdf_file.filename)
+            base, ext = os.path.splitext(original_name)
+            final_name = original_name
+            counter = 1
+            while os.path.exists(os.path.join(UPLOAD_FOLDER_PDF, final_name)):
+                final_name = f"{base}_{counter}{ext}"
+                counter += 1
+
+            save_path = os.path.join(UPLOAD_FOLDER_PDF, final_name)
+            pdf_file.save(save_path)
+
+            pdf_path_db = f"pdf/{final_name}"
 
         enable = 0
         de_baja = 0
@@ -352,28 +373,23 @@ def add_equipos_tecnologia():
         # ===== INSERT EN tecnología_equipos =====
         cur.execute("""
             INSERT INTO tecnologia_equipos (
-                cod_articulo, nombre_equipo, fecha_mantenimiento, vencimiento_mantenimiento, 
-                fecha_calibracion, vencimiento_calibracion, fecha_ingreso, tipo_equipo, 
-                estado_equipo, ubicacion_original, ram, disco, proveedor_responsable, 
+                cod_articulo, nombre_equipo, fecha_ingreso, tipo_equipo, 
+                estado_equipo, ubicacion_original, ram, disco, 
                 color, checkbox_mantenimiento, checkbox_calibracion, imagen, 
                 software_instalado, marca_equipo_tecnologia, modelo_equipo_tecnologia, 
                 serial_equipo_tecnologia, id_persona_responsable, enable, otros_equipos_tecnologia, de_baja
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES ( %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """, (
             cod_articulo,
             nombre_equipo,
-            fecha_mantenimiento,
-            vencimiento_mantenimiento,
-            fecha_calibracion,
-            vencimiento_calibracion,
             fecha_ingreso,
             request.form.get("tipo_equipo"),
             estado_equipo,
             request.form.get("ubicacion_original"),
             request.form.get("ram"),
             request.form.get("disco"),
-            request.form.get("proveedor_responsable"),
+            # request.form.get("proveedor_responsable"),
             "verde",   # color fijo que estabas usando
             "Inactivo",
             "Inactivo",
@@ -392,28 +408,23 @@ def add_equipos_tecnologia():
         if estado_equipo == "DE BAJA":
             cur.execute("""
                 INSERT INTO tecnologia_equipos_debaja (
-                    cod_articulo, nombre_equipo, fecha_mantenimiento, vencimiento_mantenimiento, 
-                    fecha_calibracion, vencimiento_calibracion, fecha_ingreso, tipo_equipo,
-                    estado_equipo, ubicacion_original, ram, disco, proveedor_responsable, 
+                    cod_articulo, nombre_equipo, fecha_ingreso, tipo_equipo,
+                    estado_equipo, ubicacion_original, ram, disco, 
                     color, checkbox_mantenimiento, checkbox_calibracion, imagen, 
                     software_instalado, marca_equipo_tecnologia, modelo_equipo_tecnologia, 
-                    serial_equipo_tecnologia, fecha_de_baja, id_persona_responsable
+                    serial_equipo_tecnologia, fecha_de_baja, id_persona_responsable, pdf_debaja
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES ( %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """, (
                 cod_articulo,
                 nombre_equipo,
-                fecha_mantenimiento,
-                vencimiento_mantenimiento,
-                fecha_calibracion,
-                vencimiento_calibracion,
                 fecha_ingreso,
                 request.form.get("tipo_equipo"),
                 estado_equipo,
                 request.form.get("ubicacion_original"),
                 request.form.get("ram"),
                 request.form.get("disco"),
-                request.form.get("proveedor_responsable"),
+                # request.form.get("proveedor_responsable"),
                 "verde",
                 "Inactivo",
                 "Inactivo",
@@ -423,7 +434,8 @@ def add_equipos_tecnologia():
                 request.form.get("modelo_equipo_tecnologia"),
                 request.form.get("serial_equipo_tecnologia"),
                 fecha_de_baja,
-                request.form.get("id_persona_responsable")
+                request.form.get("id_persona_responsable"),
+                pdf_path_db
             ))
 
         db.connection.commit()
@@ -436,7 +448,7 @@ def add_equipos_tecnologia():
         return redirect(url_for('main.indexTecnologia'))
 
     return render_template('indexTecnologia.html')
-# ---------------------------INICIA INSERT MASIVO DE EQUIPOS CSV DE TECNOLOGIA-----------------------------
+# ---------------------------INICIA INSERT MASIVO DE EQUIPOS EXCEL DE TECNOLOGIA-----------------------------
 @bp.route('/insert_excelTecnologia', methods=['POST'])
 def insert_excel_tecnologia():
 
@@ -456,9 +468,6 @@ def insert_excel_tecnologia():
     # ===============================
     # MAPS (consultados una sola vez)
     # ===============================
-
-    cur.execute("SELECT id, nombre_tecnico FROM tecnologia_tecnico_responsable")
-    proveedor_map = {p[1].strip().lower(): p[0] for p in cur.fetchall()}
 
     cur.execute("SELECT id, documento_identidad FROM tecnologia_persona_responsable")
     persona_map = {str(p[1]).strip().lower(): p[0] for p in cur.fetchall()}
@@ -489,34 +498,23 @@ def insert_excel_tecnologia():
             # CAMPOS FECHA
             # ---------------------------
             fecha_ingreso = row[2]
-            periodicidad = row[3]
-            fecha_mantenimiento = row[4]
-            vencimiento_mantenimiento = row[5]
-            periodicidad_calibracion = row[6]
-            fecha_calibracion = row[7]
-            vencimiento_calibracion = row[8]
-
-            tipo_equipo = row[9]
-            estado_equipo = str(row[10]).strip().upper()
-
-            tecnico_nombre = str(row[11]).strip().lower()
-            proveedor_id = proveedor_map.get(tecnico_nombre)
-
-            persona_nombre = str(row[12]).strip().lower()
+            tipo_equipo = row[3]
+            estado_equipo = str(row[4]).strip().upper()
+            persona_nombre = str(row[5]).strip().lower()
             persona_id = persona_map.get(persona_nombre)
 
             if not persona_id:
-                flash(f"Fila {i}: persona '{row[12]}' no existe", "error")
+                flash(f"Fila {i}: persona '{row[5]}' no existe", "error")
                 continue
 
-            ram = row[13]
-            disco = row[14]
-            marca = row[15]
-            modelo = row[16]
-            serial = row[17]
-            software = row[18]
+            ram = row[6]
+            disco = row[7]
+            marca = row[8]
+            modelo = row[9]
+            serial = row[10]
+            software = row[11]
 
-            imagen = secure_filename(row[19]) if row[19] else None
+            imagen = secure_filename(row[12]) if row[12] else None
 
             ruta_imagen = f"fotos/{imagen}" if imagen else DEFAULT_IMAGE
 
@@ -558,11 +556,11 @@ def insert_excel_tecnologia():
             cur.execute("""
                 INSERT INTO tecnologia_equipos (
                     cod_articulo, nombre_equipo,
-                    fecha_mantenimiento, vencimiento_mantenimiento,
-                    fecha_calibracion, vencimiento_calibracion,
+                    # fecha_mantenimiento, vencimiento_mantenimiento,
+                    # fecha_calibracion, vencimiento_calibracion,
                     fecha_ingreso, tipo_equipo,
                     estado_equipo, ram, disco,
-                    proveedor_responsable,
+                    # proveedor_responsable,
                     color, checkbox_mantenimiento, checkbox_calibracion,
                     imagen, software_instalado,
                     marca_equipo_tecnologia,
@@ -571,22 +569,17 @@ def insert_excel_tecnologia():
                     id_persona_responsable,
                     enable, de_baja, otros_equipos_tecnologia
                 )
-                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,
+                VALUES (%s,%s,%s,%s,%s,%s,
                         %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,
                         %s,%s,%s)
             """, (
                 cod_articulo,
                 nombre_equipo,
-                fecha_mantenimiento,
-                vencimiento_mantenimiento,
-                fecha_calibracion,
-                vencimiento_calibracion,
                 fecha_ingreso,
                 tipo_equipo,
                 estado_equipo,
                 ram,
                 disco,
-                proveedor_id,
                 color,
                 checkbox_mantenimiento,
                 checkbox_calibracion,
@@ -610,11 +603,11 @@ def insert_excel_tecnologia():
                 cur.execute("""
                     INSERT INTO tecnologia_equipos_debaja (
                         cod_articulo, nombre_equipo,
-                        fecha_mantenimiento, vencimiento_mantenimiento,
-                        fecha_calibracion, vencimiento_calibracion,
+                        # fecha_mantenimiento, vencimiento_mantenimiento,
+                        # fecha_calibracion, vencimiento_calibracion,
                         fecha_ingreso, tipo_equipo,
                         estado_equipo, ram, disco,
-                        proveedor_responsable,
+                        # proveedor_responsable,
                         color, checkbox_mantenimiento, checkbox_calibracion,
                         imagen, software_instalado,
                         marca_equipo_tecnologia,
@@ -623,21 +616,16 @@ def insert_excel_tecnologia():
                         fecha_de_baja,
                         id_persona_responsable
                     )
-                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,
+                    VALUES (%s,%s,%s,%s,%s,%s,
                             %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
                 """, (
                     cod_articulo,
                     nombre_equipo,
-                    fecha_mantenimiento,
-                    vencimiento_mantenimiento,
-                    fecha_calibracion,
-                    vencimiento_calibracion,
                     fecha_ingreso,
                     tipo_equipo,
                     estado_equipo,
                     ram,
                     disco,
-                    proveedor_id,
                     color,
                     checkbox_mantenimiento,
                     checkbox_calibracion,
@@ -801,14 +789,16 @@ def get_datos_persona(id):
     except Exception as e:
         print(f"⚠️ Error en get_datos_persona: {e}")
         return jsonify({'success': False, 'message': 'Error al obtener datos.'})
-
+    
+def allowed_pdf(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_PDF
     
 # ACTUALIZA EL ESTADO DEL EQUIPO DESDE EL DESPLEGABLE QUE SE ENCUENTRA EN LA MISMA TABLA INDEXSALUD
 @bp.route('/update_estadoEquipoTecnologia', methods=['POST'])
 @login_required
 def update_estado_equipo_tecnologia():
     if request.method == 'POST':
-
+        pdf_path_db = None
         # OBTENER FULLNAME DEL USUARIO LOGUEADO
         cur = db.connection.cursor()
         cur.execute("SELECT fullname, username FROM user WHERE id = %s", (current_user.id,))
@@ -816,10 +806,10 @@ def update_estado_equipo_tecnologia():
         usuario_logueado_nombre = result[0] if result else None
         usuario_logueado_email  = result[1] if result else None
 
-        producto_id = request.form['producto_id']
-        nuevo_estado = request.form['nuevo_estado_equipo']
+        # producto_id = request.form['producto_id']
+        nuevo_estado = request.form.get("nuevo_estado_equipo")
         cod_articulo = request.form ['cod_articulo']
-        nombre_equipo = request.form ['nombre_equipo']
+        nombre_equipo = request.form.get ("nombre_equipo")
 
         # Obtener hora actual del equipo
         hora_actual = datetime.now()
@@ -859,7 +849,7 @@ def update_estado_equipo_tecnologia():
             except ValueError:
                 vencimiento_calibracion = None
 
-        fecha_ingreso = request.form ['fecha_ingreso']
+        fecha_ingreso = request.form.get ("fecha_ingreso")
 
         periodicidad_raw = request.form.get("periodicidad")
         if periodicidad_raw in (None, "", "None"):
@@ -867,58 +857,81 @@ def update_estado_equipo_tecnologia():
         else:
             periodicidad = int(periodicidad_raw)
 
-        tipo_equipo = request.form ['tipo_equipo']
-        estado_equipo= request.form ['estado_equipo']
+        tipo_equipo = request.form.get ("tipo_equipo")
+        # estado_equipo= request.form ['estado_equipo']
 
-        ubicacion_original_raw = request.form ['ubicacion_original']
+        ubicacion_original_raw = request.form.get ("ubicacion_original")
         if ubicacion_original_raw in (None, "", "None"):
             ubicacion_original = None
         else:
             ubicacion_original = int(ubicacion_original_raw)
 
 
-        ram = request.form ['ram']
-        disco = request.form ['disco']
+        ram = request.form.get ("ram")
+        disco = request.form.get ("disco")
 
-        proveedor_responsable_raw = request.form ['proveedor_responsable']
+        proveedor_responsable_raw = request.form.get ("proveedor_responsable")
         if proveedor_responsable_raw in (None, "", "None"):
             proveedor_responsable = None
         else:
             proveedor_responsable = int(proveedor_responsable_raw)
 
-        software_instalado = request.form ['software_instalado']
+        software_instalado = request.form.get ("software_instalado")
         # cuidados_basicos = request.form ['cuidados_basicos']
-        periodicidad_calibracion_raw = request.form ['periodicidad_calibracion']
+        periodicidad_calibracion_raw = request.form.get ("periodicidad_calibracion")
         if periodicidad_calibracion_raw in (None, "", "None"):
             periodicidad_calibracion = None
         else:
             periodicidad_calibracion = int(periodicidad_calibracion_raw)
 
-        marca_equipo_tecnologia = request.form ['marca_equipo_tecnologia']
-        modelo_equipo_tecnologia = request.form ['modelo_equipo_tecnologia']
-        serial_equipo_tecnologia = request.form ['serial_equipo_tecnologia']
-        id_persona_responsable = request.form ['id_persona_responsable']
+        marca_equipo_tecnologia = request.form.get ("marca_equipo_tecnologia")
+        modelo_equipo_tecnologia = request.form.get ("modelo_equipo_tecnologia")
+        serial_equipo_tecnologia = request.form.get ("serial_equipo_tecnologia")
+        id_persona_responsable = request.form.get ("id_persona_responsable")
         cur = db.connection.cursor()
 
         # Obtener la ruta de la imagen desde la tabla tecnologia_equipos
-        cur.execute('SELECT imagen FROM tecnologia_equipos WHERE cod_articulo = %s', (cod_articulo,))
-        imagen_result = cur.fetchone()
-        filepath_to_db_img = imagen_result[0] if imagen_result else None
+        cur.execute("""
+            SELECT imagen, nombre_equipo, fecha_ingreso
+            FROM tecnologia_equipos
+            WHERE cod_articulo = %s
+        """, (cod_articulo,))
+        equipo = cur.fetchone()
+
+        if not equipo:
+            flash("Equipo no encontrado.", "error")
+            return redirect(url_for("main.indexTecnologia"))
+
+        filepath_to_db_img, nombre_equipo, fecha_ingreso = equipo
+
+        if not fecha_ingreso:
+            flash("El equipo no tiene FECHA DE COMPRA registrada.", "error")
+            return redirect(url_for("main.indexTecnologia"))
+        
+        filepath_to_db_img = equipo[0] if equipo else None
 
         if nuevo_estado == 'DE BAJA':
 
-            # ===== VALIDAR FECHA DE INGRESO =====
-            if fecha_ingreso in (None, "", "None"):
-                flash("Ingresar FECHA DE COMPRA para dar de baja al equipo.", "error")
-                return redirect(url_for('main.indexTecnologia'))
+            pdf_file = request.files.get("pdf_debaja")
 
-            # Convertir fecha_ingreso si viene correcta
-            try:
-                fecha_ingreso = datetime.strptime(fecha_ingreso, "%Y-%m-%d").date()
-            except ValueError:
-                flash("FECHA DE COMPRA no tiene un formato válido (YYYY-MM-DD).", "error")
-                return redirect(url_for('main.indexTecnologia'))
-            
+            if not pdf_file or not pdf_file.filename:
+                flash("Debe adjuntar el acta de baja en PDF.", "error")
+                return redirect(url_for("main.indexTecnologia"))
+
+            if not allowed_pdf(pdf_file.filename):
+                flash("El documento debe ser PDF.", "error")
+                return redirect(url_for("main.indexTecnologia"))
+
+            os.makedirs(UPLOAD_FOLDER_PDF, exist_ok=True)
+
+            ext = os.path.splitext(pdf_file.filename)[1].lower()
+            unique_name = f"{uuid.uuid4().hex}{ext}"
+
+            save_path = os.path.join(UPLOAD_FOLDER_PDF, unique_name)
+            pdf_file.save(save_path)
+
+            pdf_path_db = f"pdf/{unique_name}"
+
             # Actualizar el estado y marcar como dado de baja en tecnologia_equipos
             cur.execute("""UPDATE tecnologia_equipos SET estado_equipo = %s, enable = 0, de_baja = 1, otros_equipos_tecnologia = 0 WHERE cod_articulo = %s""", (nuevo_estado, cod_articulo))
 
@@ -930,8 +943,8 @@ def update_estado_equipo_tecnologia():
             if not equipo_existente:
                 cur.execute("""INSERT INTO tecnologia_equipos_debaja (cod_articulo, nombre_equipo, fecha_mantenimiento, vencimiento_mantenimiento, fecha_calibracion, vencimiento_calibracion, fecha_ingreso,
                                                                 periodicidad, tipo_equipo, estado_equipo, ubicacion_original, ram, disco, proveedor_responsable, color, imagen, software_instalado,
-                                                                periodicidad_calibracion, marca_equipo_tecnologia, modelo_equipo_tecnologia, serial_equipo_tecnologia, id_persona_responsable, fecha_de_baja) 
-                                                                VALUES ( %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                                                                periodicidad_calibracion, marca_equipo_tecnologia, modelo_equipo_tecnologia, serial_equipo_tecnologia, id_persona_responsable, pdf_debaja, fecha_de_baja) 
+                                                                VALUES ( %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
                     (
                         cod_articulo,
                         nombre_equipo,
@@ -956,6 +969,7 @@ def update_estado_equipo_tecnologia():
                         modelo_equipo_tecnologia,
                         serial_equipo_tecnologia,
                         id_persona_responsable,
+                        pdf_path_db,
                         hora_actual
                     ),
                 )
@@ -1513,9 +1527,6 @@ def ELIMINAR_CONTACTO(id):
     flash('Producto eliminado satisfactoriamente')
     return redirect(url_for('indexTecnologia'))
 # --------------------------- FINALIZA MODULO DE TECNOLOGIA-----------------------------
-# --------------------------- INICIA MODULO DE SALUD-----------------------------
-# --------------------------- DATOS PROVEEDOR SALUD --------------------------------
-
 
 # ---------------------------FUNCIÓN PARA EL MANEJO DE LOS MODULOS-----------------------------
 @bp.route('/<modulo>')
@@ -1583,43 +1594,15 @@ def subir_imagen(id_producto):
 
         flash('Imagen cargada correctamente', 'success')
         return redirect(url_for('main.indexTecnologia'))
-
-# ---------------------------FUNCION PARA CARGAR PDFS DEL EQUIPO DESDE LA TABLA indexSalud EN EL CAMPO ACCIONES SUBIR_GUIA---------------------------- 
-# @app.route('/subir_pdf/<int:id_producto>', methods=['POST'])
-# def subir_pdf(id_producto, modulo):
-#     if 'pdf_salud' not in request.files:
-#         flash('No se seleccionó ningún archivo', 'error')
-#         return redirect(url_for('index_modulo', modulo=modulo))
-
-#     file = request.files['pdf_salud']
-#     if file.filename == '':
-#         flash('Por favor seleccione un archivo válido', 'error')
-#         return redirect(url_for('index_modulo', modulo=modulo))
-
-#     # Validar extensión
-#     if not file.filename.lower().endswith('.pdf'):
-#         flash('Solo se permiten archivos PDF', 'error')
-#         return redirect(url_for('index_modulo', modulo=modulo))
-
-#     # Guardar archivo
-#     filename = secure_filename(file.filename)
-#     filepath_to_db_pdf = os.path.join('pdf', filename).replace("\\", "/")
-#     ruta_absoluta = os.path.join(app.root_path, 'static', filepath_to_db_pdf)
-#     file.save(ruta_absoluta)
-
-#     # Actualizar en BD (columna ejemplo: pdf_salud)
-#     cur = db.connection.cursor()
-#     cur.execute("""
-#         UPDATE indexssalud 
-#         SET pdf_salud = %s 
-#         WHERE id = %s
-#     """, (filepath_to_db_pdf, id_producto))
-#     db.connection.commit()
-#     cur.close()
-
-#     flash('Guia cargada correctamente', 'success')
-#     return redirect(url_for('index_modulo', modulo='modulo'))
-
+    
+@bp.route('/ver-pdf-baja/<path:filename>')
+@login_required
+def ver_pdf_baja(filename):
+    return send_from_directory(
+        UPLOAD_FOLDER_PDF,
+        filename,
+        as_attachment=False
+    )
 # ---------------------------INICIA INSERT MASIVO DE EQUIPOS CSV DE SALUD-----------------------------
 # @app.route('/insert_csv', methods=['POST'])
 # def insert_csv(modulo):
@@ -1976,15 +1959,8 @@ def download_template_excel_tecnologia():
         "Placa Equipo",
         "Nombre Equipo",
         "Fecha de Compra",
-        "Periodicidad Preventivo",
-        "Mantenimiento Preventivo Actual",
-        "Mantenimiento Preventivo Proximo",
-        "Periodicidad Correctivo",
-        "Mantenimiento Correctivo Actual",
-        "Mantenimiento Correctivo Proximo",
         "Tipo de Equipo",
         "Estado de Equipo",
-        "Tecnico Responsable",
         "Persona Responsable del Equipo",
         "Memoria Ram",
         "Disco Duro",
@@ -2010,17 +1986,17 @@ def download_template_excel_tecnologia():
     )
 
     ws.add_data_validation(tipos_equipo)
-    tipos_equipo.add("J2:J1000")
+    tipos_equipo.add("D2:D1000")
 
     # ---- Estado Equipo
     estados_equipo = DataValidation(
         type="list",
-        formula1='"USO,BODEGA,DE BAJA,OTROS EQUIPOS"',
+        formula1='"USO,BODEGA,OTROS EQUIPOS"',
         allow_blank=True
     )
 
     ws.add_data_validation(estados_equipo)
-    estados_equipo.add("K2:K1000")
+    estados_equipo.add("E2:E1000")
 
     # ======================================
     # ESTILO ENCABEZADOS
@@ -2039,15 +2015,8 @@ def download_template_excel_tecnologia():
         "1",
         "T1",
         "2022/01/01 (Ó CAMPO VACIO)",
-        "(NUMERO DE MESES 6-12 Ó CAMPO VACIO)",
-        "2022/01/01 (Ó CAMPO VACIO)",
-        "2022/01/01 (Ó CAMPO VACIO)",
-        "(NUMERO DE MESES 6-12 Ó CAMPO VACIO)",
-        "2022/01/01 (Ó CAMPO VACIO)",
-        "2022/01/01 (Ó CAMPO VACIO)",
         "SELECCIONE UNA OPCIÓN",
         "SELECCIONE UNA OPCIÓN",
-        "",
         "123456(NÚMERO DE DOCTO DEL LIDER DEL PROCESO SIN PUNTOS)",
         "8GB",
         "500GB",
@@ -2076,27 +2045,3 @@ def download_template_excel_tecnologia():
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 # ----------------INICIA FUNCIÓN DE DESCARGUE DE PLANTILLA PARA INSERT MASIVO ----------------------
-
-# ==========================FINALIZA FUNCIÓN EQUIPOS DADOS DE BAJA SALUD=====================
-
-# FUNCIÓN ELIMINAR PARA INDEXSSALUD
-# @app.route('/delete_productoSalud/<string:id>')
-# @login_required
-# def ELIMINAR_CONTACTO_SALUD(id):
-#     cur = db.connection.cursor()
-#     # cur.execute('DELETE FROM indexssalud WHERE id = {0}'.format(id))
-#     #Esta linea de codigo en la vista elimina el producto pero no de la DB, la cual realiza es una actualización
-#     cur.execute('UPDATE indexssalud SET enable=0 WHERE id = {0}'.format(id))
-#     db.connection.commit()
-#     flash('Equipo eliminado satisfactoriamente', 'success')
-#     return redirect(url_for('index_modulo', modulo='modulo'))
-
-# def status_401(error):
-#     return redirect(url_for('login'))
-
-
-# def status_404(error):
-#     return "<h1>Página no encontrada</h1>", 404
-
-# bp.register_error_handler(401, status_401)
-# bp.register_error_handler(404, status_404)
