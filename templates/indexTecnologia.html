@@ -419,7 +419,23 @@
 
                                     </td>
                                     <td>{{ ubicacionEquiposModal.get(producto.ubicacion_original, "Sin ubicación") }}</td>
-                                    <td>{{ producto.software_instalado }}</td>
+                                    <td class="software-cell"
+                                        title="{{ producto.software_instalado }}"
+                                        data-full="{{ producto.software_instalado|e }}"
+                                        data-short="{{ producto.software_instalado[:50]|e }}{% if producto.software_instalado|length > 50 %}...{% endif %}"> <!-- Esta linea muestra el texto en la columna-->
+
+                                        <!-- TEXTO COMPLETO PARA FILTRO -->
+                                        <span class="software-full">
+                                            {{ producto.software_instalado }}
+                                        </span>
+
+                                        <!-- TEXTO CORTO VISIBLE -->
+                                        <span class="software-short">
+                                            {{ producto.software_instalado[:50] }}
+                                            {% if producto.software_instalado|length > 50 %}...{% endif %}
+                                        </span>
+
+                                    </td>
                                     <td class="semaforo" data-vencimiento="{{ producto.vencimiento_mantenimiento }}"></td>
 
                                     <td>
@@ -577,6 +593,45 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Repintar cada vez que la tabla se redibuja (cambio de página)
     tabla.on('draw.dt', function () {
+        const searchTerm = tabla.search().trim().toLowerCase();
+
+        document.querySelectorAll('.software-cell').forEach(td => {
+
+            const full = td.dataset.full || "";
+            const shortText = td.dataset.short || "";
+
+            if (!searchTerm) {
+                // 🔁 sin búsqueda → vuelve resumido
+                td.textContent = shortText;
+                return;
+            }
+
+            const lowerFull = full.toLowerCase();
+            const index = lowerFull.indexOf(searchTerm);
+
+            if (index === -1) {
+                // no match visible → deja corto
+                td.textContent = shortText;
+                return;
+            }
+
+            // 🧠 sacar fragmento alrededor
+            const CONTEXT = 25;
+
+            const start = Math.max(0, index - CONTEXT);
+            const end = Math.min(full.length, index + searchTerm.length + CONTEXT);
+
+            let fragment = full.substring(start, end);
+
+            if (start > 0) fragment = "..." + fragment;
+            if (end < full.length) fragment += "...";
+
+            // 🎨 highlight
+            const regex = new RegExp(`(${searchTerm})`, "gi");
+            fragment = fragment.replace(regex, '<mark>$1</mark>');
+
+            td.innerHTML = fragment;
+        });
         pintarSemaforos();
     });
 });

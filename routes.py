@@ -1981,7 +1981,7 @@ def download_template_excel_tecnologia():
     # ---- Tipo Equipo
     tipos_equipo = DataValidation(
         type="list",
-        formula1='"PORTATIL,TEU (Todo en Uno),CPU,TABLET"',
+        formula1='"PORTATIL,TEU (Todo en Uno),CPU,TABLET,VIDEOBEAM"',
         allow_blank=True
     )
 
