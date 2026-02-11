@@ -261,7 +261,7 @@ def indexTecnologia():
     cur.execute('SELECT id, estado_equipo FROM tecnologia_estados_equipos')
     estadoEquipos = cur.fetchall()
 
-    cur.execute('SELECT id, proceso FROM tecnologia_procesos')
+    cur.execute('SELECT id, proceso FROM tecnologia_procesos WHERE activo = 1 ORDER BY proceso')
     procesoEquipos = cur.fetchall()
     
     cur.execute('SELECT id, proceso FROM tecnologia_procesos')
@@ -1216,7 +1216,7 @@ def GET_EQUIPO_TECNOLOGIA(id,vista):
     personas = {p["id"]: p["nombre_contratista"] for p in personas_data}
 
     # Proceso
-    cur.execute('SELECT id, proceso FROM tecnologia_procesos')
+    cur.execute('SELECT id, proceso FROM tecnologia_procesos WHERE activo = 1 ORDER BY proceso')
     procesoEquipos_data = cur.fetchall()
     procesoEquipos = {p["id"]: p["proceso"] for p in procesoEquipos_data}
 
@@ -1525,7 +1525,7 @@ def index_otros_equipos_tecnologia():
     cur.execute('SELECT id, estado_equipo FROM tecnologia_estados_equipos')
     estadoEquipos = cur.fetchall()
 
-    cur.execute('SELECT id, proceso FROM tecnologia_procesos')
+    cur.execute('SELECT id, proceso FROM tecnologia_procesos WHERE activo = 1 ORDER BY proceso')
     procesoEquipos = cur.fetchall()
 
     cur.execute('SELECT id, proceso FROM tecnologia_procesos')
@@ -1834,7 +1834,7 @@ def exportCsv():
             i.fecha_calibracion,
             i.vencimiento_calibracion,
             i.estado_equipo,
-            u.id_proceso AS proceso,
+            u.proceso AS id_proceso,
             i.ubicacion,
             i.marca_equipo_tecnologia,
             i.modelo_equipo_tecnologia,
@@ -1867,7 +1867,7 @@ def exportCsv():
     encabezados = [
         'Código Equipo',
         'Nombre Equipo',
-        'Fecha Ingreso',
+        'Fecha Compra',
         'Fecha Ejecución Preventivo',
         'Fecha Vencimiento Preventivo',
         'Fecha Ejecución Correctivo',
@@ -1987,7 +1987,7 @@ def download_template_excel_tecnologia():
     # 1) OBTENER PROCESOS DESDE LA BD
     # ================================
     cur = db.connection.cursor()
-    cur.execute("SELECT id, proceso FROM tecnologia_procesos ORDER BY proceso ASC")
+    cur.execute("SELECT id, proceso FROM tecnologia_procesos WHERE activo = 1 ORDER BY proceso")
     procesos = cur.fetchall()
     cur.close()
 
