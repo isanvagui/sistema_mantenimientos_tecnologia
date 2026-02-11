@@ -45,15 +45,15 @@
                             </select>
                             </div>
 
-                            <!-- Ubicacion equipos -->
+                            <!-- proceso equipos -->
                             <div class="col-md-3">
-                            <label for="selectUbicacion" class="form-label">Proceso</label>
-                            <select name="ubicacion_id" id="selectUbicacion" class="form-control" required>
+                            <label for="selectProceso" class="form-label">Proceso</label>
+                            <select name="proceso_id" id="selectProceso" class="form-control" required>
                                 <!-- Opción inicial -->
                                 <option value="" disabled selected>Seleccione Proceso</option>
                                 <!-- Opciones que se encuentran en la DB -->
-                                {% for ubicacionEquipo in ubicacionEquipos %}
-                                <option value="{{ ubicacionEquipo.id }}">{{ ubicacionEquipo.ubicacion_original }}</option>
+                                {% for procesoEquipo in procesoEquipos %}
+                                <option value="{{ procesoEquipo.id }}">{{ procesoEquipo.proceso }}</option>
                                 {% endfor %}
                             </select>
                             </div>
@@ -115,6 +115,7 @@
                                     <th>Tipo Equipo</th>
                                     <th>Estado Equipo</th>
                                     <th>Proceso</th>
+                                    <th>Ubicación</th>
                                     <!-- <th>Memoria Ram</th> Garantía Ingreso -->
                                     <!-- <th>Disco Duro</th> Criticos -->
                                     <!--<th>Tecnico Responsable</th> Proveedor de Venta -->
@@ -146,7 +147,7 @@
                                             CheckboxMantenimiento="fecha_mantenimiento" 
                                             data-producto-id="{{ producto.cod_articulo }}"
                                             data-nombre-equipo="{{ producto.nombre_equipo or '' }}"
-                                            data-ubicacion-original="{{ producto.ubicacion_original or '' }}"
+                                            data-proceso-original="{{ producto.id_proceso or '' }}"
                                             data-estado-inicial="{{ producto.checkbox_mantenimiento }}" 
                                             data-periodicidad-mantenimiento="{{ producto.periodicidad or '' }}" 
                                             data-fecha-mantenimiento="{{ producto.fecha_mantenimiento or '' }}" 
@@ -172,7 +173,7 @@
                                             CheckboxMantenimiento="fecha_calibracion"
                                             data-producto-id="{{ producto.cod_articulo }}" 
                                             data-nombre-equipo="{{ producto.nombre_equipo }}"
-                                            data-ubicacion-original="{{ producto.ubicacion_original }}"
+                                            data-proceso-original="{{ producto.id_proceso }}"
                                             data-estado-inicial="{{ producto.checkbox_calibracion }}"
                                             data-periodicidad-calibracion="{{ producto.periodicidad_calibracion or '' }}" 
                                             data-fecha-calibracion="{{ producto.fecha_calibracion or '' }}" 
@@ -229,8 +230,8 @@
                                             <br>
                                         </form>
                                     </td> -->
-                                    <td>{{ ubicacionEquiposModal.get(producto.ubicacion_original, "Sin ubicación") }}</td>
-                                    <!-- <td>{{ producto.ubicacion_original }}</td> -->
+                                    <td>{{ procesoEquiposModal.get(producto.id_proceso, "Sin Proceso") }}</td>
+                                    <td>{{ producto.ubicacion }}</td>
                                     <td class="semaforo" data-vencimiento="{{ producto.vencimiento_mantenimiento }}"></td>
 
                                     <td>
@@ -346,7 +347,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function guardarPrestamo() {
         const recibeCorreo = document.getElementById('inputCorreo').value;
         const quienRecibe = document.getElementById('inputRecibe').value;
-        const ubicacionDestino = document.getElementById('inputUbicacionDestino').value;
+        const procesoDestino = document.getElementById('inputProcesoDestino').value;
 
         if (!recibeCorreo) {
             alert('Ingresar el correo de la persona que recibe el equipo');
@@ -358,14 +359,14 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        if (!ubicacionDestino) {
-            alert('Ingresar la ubicación de destino del equipo');
+        if (!procesoDestino) {
+            alert('Ingresar el proceso de destino del equipo');
             return;
         }
 
         document.getElementById('correoRecibe_' + currentEquipoId).value = recibeCorreo;
         document.getElementById('nombreRecibe_' + currentEquipoId).value = quienRecibe;
-        document.getElementById('ubicacionDestino_' + currentEquipoId).value = ubicacionDestino;
+        document.getElementById('procesoDestino_' + currentEquipoId).value = procesoDestino;
 
         function cerrarModal() {
         const modalEl = document.getElementById('modalPrestamo');
@@ -402,7 +403,7 @@ document.getElementById("guardarSeleccionados").addEventListener("click", async 
     const data = {
         proveedorId: document.getElementById("selectProveedor").value,
         personaId: document.getElementById("selectPersona").value,
-        ubicacionId: document.getElementById("selectUbicacion").value,
+        procesoId: document.getElementById("selectProceso").value,
         observacionesId: document.getElementById("selectObservaciones").value,
         nuevaFecha: document.getElementById("nuevaFecha").value,
         nuevaPeriodicidad: document.getElementById("nuevaPeriodicidad").value,

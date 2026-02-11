@@ -73,21 +73,21 @@
                                     </td>
 
                                     <td>
-                                        {% if registro.ubicacion_original in ubicacionEquipos %}
-                                            {{ ubicacionEquipos[registro.ubicacion_original] }}
+                                        {% if registro.id_proceso in procesoEquipos %}
+                                            {{ procesoEquipos[registro.id_proceso] }}
                                         {% else %}
-                                            <span class="text-muted">Sin ubicación</span>
+                                            <span class="text-muted">Sin Proceso</span>
                                         {% endif %}
                                     </td>
 
                                     <td>Correctivo</td>
 
                                     <td>
-                                        <input type="text" name="periodicidad" value="{{ registro.periodicidad_calibracion }}">
+                                        {{ registro.periodicidad_calibracion }}
                                     </td>
 
                                     <td>
-                                        <input type="date" name="vencimiento_calibracion" value="{{ registro.vencimiento_calibracion }}">
+                                        {{ registro.vencimiento_calibracion }}
                                     </td>
 
                                     <td>

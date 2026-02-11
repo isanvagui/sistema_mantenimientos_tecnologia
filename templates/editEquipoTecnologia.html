@@ -142,13 +142,13 @@
                 <li><b>Estado de equipo: </b>{{ producto.estado_equipo}}</li>
 
                 <li><b>Proceso: </b>
-                    {% if producto.ubicacion_original in ubicacionEquipos %}
-                        {{ ubicacionEquipos[producto.ubicacion_original] }}
+                    {% if producto.id_proceso in procesoEquipos %}
+                        {{ procesoEquipos[producto.id_proceso] }}
                     {% else %}
-                        <span class="text-muted">Sin ubicación</span>
+                        <span class="text-muted">Sin Proceso</span>
                     {% endif %}
                 </li>
-
+                <li><b>Ubicación: </b>{{ producto.ubicacion }}</li>
                 <li><b>Marca de equipo: </b>{{ producto.marca_equipo_tecnologia }}</li>
                 <li><b>Modelo de equipo: </b>{{ producto.modelo_equipo_tecnologia}}</li>
                 <li><b>Serial de equipo: </b>{{ producto.serial_equipo_tecnologia }}</li>
@@ -221,18 +221,18 @@
                     </div>
 
                     <div class="form-group">
-                        <b><label for="selectUbicacion">Proceso</label></b>
-                        <select id="selectUbicacion" name="ubicacion_original" class="form-control">
+                        <b><label for="selectProceso">Proceso</label></b>
+                        <select id="selectProceso" name="id_proceso" class="form-control">
                             
-                            <!-- Opción inicial SI NO hay ubicación asignada -->
-                            <option value="" {% if not producto.ubicacion_original %}selected{% endif %}>
-                                Sin ubicación
+                            <!-- Opción inicial SI NO hay proceso asignada -->
+                            <option value="" {% if not producto.id_proceso %}selected{% endif %}>
+                                Sin Proceso
                             </option>
                             
-                            {% for id_ubicacion, ubicacionEquipo in ubicacionEquipos.items() %}
-                                <option value="{{ id_ubicacion }}"
-                                    {% if producto.ubicacion_original == id_ubicacion %}selected{% endif %}>
-                                    {{ ubicacionEquipo }}
+                            {% for id_proceso, procesoEquipo in procesoEquipos.items() %}
+                                <option value="{{ id_proceso }}"
+                                    {% if producto.id_proceso == id_proceso %}selected{% endif %}>
+                                    {{ procesoEquipo }}
                                 </option>
                             {% endfor %}
                         </select>
@@ -241,6 +241,11 @@
                     <div class="form-group">
                         <b><label for="software_instalado">Software Instalado</label></b>
                         <input type="text" id="software_instalado" name="software_instalado" value="{{ producto.software_instalado }}" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <b><label for="ubicacion">Ubicación</label></b>
+                        <input type="text" id="ubicacion" name="ubicacion" value="{{ producto.ubicacion }}" class="form-control">
                     </div>
 
                     <div class="form-group">

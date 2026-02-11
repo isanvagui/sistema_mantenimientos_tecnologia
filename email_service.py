@@ -63,7 +63,7 @@ def send_email_with_logo(subject, body_html, recipients):
 
 
 def send_mantenimiento_notification_html(
-    lista_equipos, nombre_tecnico, ubicacion_original,
+    lista_equipos, nombre_tecnico, id_proceso,
     persona_responsable, email_recibe, fecha_mantenimiento, tipo_mantenimiento
 ):
     """
@@ -85,7 +85,7 @@ def send_mantenimiento_notification_html(
     <ul>
         {equipos_html}
         <li><b>👤 Tecnico responsable:</b> {nombre_tecnico}</li>
-        <li><b>📍 Ubicación del equipo:</b> {ubicacion_original}</li>
+        <li><b>📍 Proceso:</b> {id_proceso}</li>
         <li><b>👤 Responsable del equipo:</b> {persona_responsable}</li>
         <li><b>🗓 Fecha de mantenimiento:</b> {fecha_mantenimiento}</li>
     </ul>

@@ -71,21 +71,21 @@
                                     </td>
 
                                     <td>
-                                        {% if registro.ubicacion_original in ubicacionEquipos %}
-                                            {{ ubicacionEquipos[registro.ubicacion_original] }}
+                                        {% if registro.id_proceso in procesoEquipos %}
+                                            {{ procesoEquipos[registro.id_proceso] }}
                                         {% else %}
-                                            <span class="text-muted">Sin ubicación</span>
+                                            <span class="text-muted">Sin Proceso</span>
                                         {% endif %}
                                     </td>
 
                                     <td>Preventivo</td>
 
                                     <td>
-                                        <input type="text" name="periodicidad" value="{{ registro.periodicidad }}">
+                                        {{ registro.periodicidad }}
                                     </td>
 
                                     <td>
-                                        <input type="date" name="vencimiento_mantenimiento" value="{{ registro.vencimiento_mantenimiento }}">
+                                        {{ registro.vencimiento_mantenimiento }}
                                     </td>
 
                                     <td>
@@ -115,56 +115,6 @@
                                     </td>
                                 </tr>
                             {% endfor %}
-                            <!-- Mostrar registros de correctivo
-                            {% for registro in historial.correctivo %}                            
-                            <form method="POST" action="{{ url_for('update_historial_mantenimiento_correctivo') }}">
-                                <tr>
-                                    <td>{{ registro.cod_articulo}}</td>
-                                    <td>
-                                        {{ registro.nombre_equipo }}
-                                        <input type="hidden" name="nombre_equipo" value="{{ registro.nombre_equipo }}">
-                                    </td>
-
-                                    <td>
-                                        {% if registro.ubicacion_original in ubicacionEquipos %}
-                                        {{ ubicacionEquipos[registro.ubicacion_original] }}
-                                        {% else %}
-                                            <span class="text-muted">Sin ubicación</span>
-                                        {% endif %}   
-                                    </td>
-                                    
-                                    <td>Correctivo</td> 
-                                    <td><input type="text" name="periodicidad_calibracion" value="{{ registro.periodicidad_calibracion }}"></td>
-                                    <td><input type="date" name="vencimiento_calibracion" value="{{ registro.vencimiento_calibracion }}"></td>
-                                    <td>
-                                        {% if registro.id_proveedor_responsable in proveedores %}
-
-                                            {{ proveedores[registro.id_proveedor_responsable] }}                                            
-
-                                        {% else %}
-                                            <span class="text-muted">Sin proveedor</span>
-                                        {% endif %}    
-                                    </td>
-
-                                    <td>
-                                        {% if registro.id_persona_responsable in personas %}
-                                        <div class="btn-eliminar"> 
-                                            <a href="{{ url_for('DATOS_PERSONA_TECNOLOGIA', id=registro.id_persona_responsable) }}" class="btn btn-update-data btn-sm"">
-                                                <FONT SIZE=2>datos</FONT>
-                                            </a> 
-                                        </div>
-                                        {% else %}
-                                            <span class="text-muted">Sin proveedor</span>
-                                        {% endif %}    
-                                    </td>
-                                    
-                                    <td class="col-md-3">
-                                        {{ registro.observaciones }}
-                                        <input type="hidden" name="observaciones" value="{{ registro.observaciones }}">
-                                    </td>
-                                </tr>    
-                            </form>                            
-                            {% endfor %} -->
                         </tbody>
                     </table>
                 </div>

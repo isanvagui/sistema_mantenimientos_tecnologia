@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnGuardar = document.getElementById("guardarSeleccionados");
     const modalElement = document.getElementById("modalGuardar");
     const selectPersona = document.getElementById("selectPersona");
-    const selectUbicacion = document.getElementById("selectUbicacion");
+    const selectProceso = document.getElementById("selectProceso");
 
     // 🟩 1️⃣ Evento principal del botón "Guardar seleccionados"
     if (btnGuardar) {
@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const proveedorId = document.getElementById("selectProveedor").value.trim();
             const personaId = selectPersona.value.trim();
             const observacionesId = document.getElementById("selectObservaciones").value.trim();
-            const ubicacionId = selectUbicacion.value.trim();
+            const procesoId = selectProceso.value.trim();
             const nuevaFecha = document.getElementById("nuevaFecha").value.trim();
             const nuevaPeriodicidad = document.getElementById("nuevaPeriodicidad").value.trim();
             const correoExterno = document.getElementById("inputCorreo").value.trim();
@@ -51,7 +51,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         proveedorId,
                         personaId,
                         observacionesId,
-                        ubicacionId,
+                        procesoId,
                         nuevaFecha,
                         nuevaPeriodicidad,
                         correoExterno,
@@ -75,7 +75,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     "selectProveedor",
                     "selectPersona",
                     "selectObservaciones",
-                    "selectUbicacion",
+                    "selectProceso",
                     "nuevaFecha",
                     "nuevaPeriodicidad",
                     "inputCorreo"
@@ -146,8 +146,8 @@ document.addEventListener("DOMContentLoaded", () => {
                         if (data.persona_id && selectPersona)
                             selectPersona.value = data.persona_id;
 
-                        if (data.ubicacion_id && selectUbicacion)
-                            selectUbicacion.value = data.ubicacion_id;
+                        if (data.proceso_id && selectProceso)
+                            selectProceso.value = data.proceso_id;
 
                         console.log(`📍 Datos cargados para equipo ${idEquipo}:`, data);
                     } else {

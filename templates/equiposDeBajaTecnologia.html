@@ -47,7 +47,23 @@
                                     <td>{{ producto.fecha_ingreso }}</td>
                                     <td>{{ producto.fecha_de_baja }}</td>
                                     <td>{{ producto.tipo_equipo }}</td>
-                                    <td>{{ producto.software_instalado }}</td>
+                                    
+                                    <td class="software-cell"
+                                        title="{{ producto.software_instalado }}"
+                                        data-full="{{ producto.software_instalado|e }}"
+                                        data-short="{{ producto.software_instalado[:50]|e }}{% if producto.software_instalado|length > 50 %}...{% endif %}"> <!-- Esta linea muestra el texto en la columna-->
+
+                                        <!-- TEXTO COMPLETO PARA FILTRO -->
+                                        <span class="software-full">
+                                            {{ producto.software_instalado }}
+                                        </span>
+
+                                        <!-- TEXTO CORTO VISIBLE -->
+                                        <span class="software-short">
+                                            {{ producto.software_instalado[:50] }}
+                                            {% if producto.software_instalado|length > 50 %}...{% endif %}
+                                        </span>
+                                    </td>
                                     <td>{{ producto.estado_equipo }}</td>
 
                                     <td>
@@ -83,7 +99,7 @@
 <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
 
 <!-- boton de busqueda y filtro, con lenguaje en español -->
-<script>
+<!-- <script>
     $("#tabla").DataTable({
         "language": {
             "url": "https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json"
@@ -92,6 +108,61 @@
 
     );
 
+</script> -->
+
+<script>
+// <!-- boton de busqueda y filtro, con lenguaje en español -->
+document.addEventListener("DOMContentLoaded", function () {
+    // Inicializar DataTable
+    const tabla = $("#tabla").DataTable({
+        "language": {
+            "url": "https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json"
+        }
+    });
+
+    // Repintar cada vez que la tabla se redibuja (cambio de página)
+    tabla.on('draw.dt', function () {
+        const searchTerm = tabla.search().trim().toLowerCase();
+
+        document.querySelectorAll('.software-cell').forEach(td => {
+
+            const full = td.dataset.full || "";
+            const shortText = td.dataset.short || "";
+
+            if (!searchTerm) {
+                // 🔁 sin búsqueda → vuelve resumido
+                td.textContent = shortText;
+                return;
+            }
+
+            const lowerFull = full.toLowerCase();
+            const index = lowerFull.indexOf(searchTerm);
+
+            if (index === -1) {
+                // no match visible → deja corto
+                td.textContent = shortText;
+                return;
+            }
+
+            // 🧠 sacar fragmento alrededor
+            const CONTEXT = 25;
+
+            const start = Math.max(0, index - CONTEXT);
+            const end = Math.min(full.length, index + searchTerm.length + CONTEXT);
+
+            let fragment = full.substring(start, end);
+
+            if (start > 0) fragment = "..." + fragment;
+            if (end < full.length) fragment += "...";
+
+            // 🎨 highlight
+            const regex = new RegExp(`(${searchTerm})`, "gi");
+            fragment = fragment.replace(regex, '<mark>$1</mark>');
+
+            td.innerHTML = fragment;
+        });
+    });
+});
 </script>
 
 <script>

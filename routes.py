@@ -36,7 +36,7 @@ from datetime import datetime
 
 bp = Blueprint('main', __name__)
 
-UPLOAD_FOLDER_PDF = "/var/www/software_inventario_laboratorios/static/pdf"
+UPLOAD_FOLDER_PDF = "/var/www/sistema_mantenimientos_tecnologia/static/pdf"
 ALLOWED_PDF = {"pdf"}
 UPLOAD_FOLDER = "/var/www/sistema_mantenimientos_tecnologia/static/fotos"
 ALLOWED_EXTENSIONS = {".png", ".jpg", ".jpeg"}
@@ -261,15 +261,15 @@ def indexTecnologia():
     cur.execute('SELECT id, estado_equipo FROM tecnologia_estados_equipos')
     estadoEquipos = cur.fetchall()
 
-    cur.execute('SELECT id, ubicacion_original FROM tecnologia_ubicacion_equipos')
-    ubicacionEquipos = cur.fetchall()
+    cur.execute('SELECT id, proceso FROM tecnologia_procesos')
+    procesoEquipos = cur.fetchall()
     
-    cur.execute('SELECT id, ubicacion_original FROM tecnologia_ubicacion_equipos')
-    ubicacionEquipos_data = cur.fetchall()
-    ubicacionEquiposModal = {p["id"]: p["ubicacion_original"] for p in ubicacionEquipos_data}
+    cur.execute('SELECT id, proceso FROM tecnologia_procesos')
+    procesoEquipos_data = cur.fetchall()
+    procesoEquiposModal = {p["id"]: p["proceso"] for p in procesoEquipos_data}
     
-    # print(ubicacionEquipos)
-    return render_template('indexTecnologia.html', tecnologia_equipos=data, tipoEquipos=tipoEquipos, proveedores=proveedores, personas=personas, estadoEquipos=estadoEquipos, ubicacionEquipos=ubicacionEquipos, ubicacionEquiposModal=ubicacionEquiposModal)
+    # print(procesoEquipos)
+    return render_template('indexTecnologia.html', tecnologia_equipos=data, tipoEquipos=tipoEquipos, proveedores=proveedores, personas=personas, estadoEquipos=estadoEquipos, procesoEquipos=procesoEquipos, procesoEquiposModal=procesoEquiposModal)
 
 
 def allowed_image(filename):
@@ -359,7 +359,7 @@ def add_equipos_tecnologia():
         de_baja = 0
         otros_equipos_tecnologia = 0
 
-        if estado_equipo in ("USO", "BODEGA"):
+        if estado_equipo in ("USO", "SIN USO"):
             enable = 1
 
         elif estado_equipo == "DE BAJA":
@@ -374,19 +374,19 @@ def add_equipos_tecnologia():
         cur.execute("""
             INSERT INTO tecnologia_equipos (
                 cod_articulo, nombre_equipo, fecha_ingreso, tipo_equipo, 
-                estado_equipo, ubicacion_original, ram, disco, 
+                estado_equipo, id_proceso, ram, disco, 
                 color, checkbox_mantenimiento, checkbox_calibracion, imagen, 
                 software_instalado, marca_equipo_tecnologia, modelo_equipo_tecnologia, 
-                serial_equipo_tecnologia, id_persona_responsable, enable, otros_equipos_tecnologia, de_baja
+                serial_equipo_tecnologia, id_persona_responsable, enable, otros_equipos_tecnologia, ubicacion, de_baja
             )
-            VALUES ( %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES ( %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """, (
             cod_articulo,
             nombre_equipo,
             fecha_ingreso,
             request.form.get("tipo_equipo"),
             estado_equipo,
-            request.form.get("ubicacion_original"),
+            request.form.get("id_proceso"),
             request.form.get("ram"),
             request.form.get("disco"),
             # request.form.get("proveedor_responsable"),
@@ -401,6 +401,7 @@ def add_equipos_tecnologia():
             request.form.get("id_persona_responsable"),
             enable,
             otros_equipos_tecnologia,
+            request.form.get("ubicacion"),
             de_baja
         ))
 
@@ -409,7 +410,7 @@ def add_equipos_tecnologia():
             cur.execute("""
                 INSERT INTO tecnologia_equipos_debaja (
                     cod_articulo, nombre_equipo, fecha_ingreso, tipo_equipo,
-                    estado_equipo, ubicacion_original, ram, disco, 
+                    estado_equipo, id_proceso, ram, disco, 
                     color, checkbox_mantenimiento, checkbox_calibracion, imagen, 
                     software_instalado, marca_equipo_tecnologia, modelo_equipo_tecnologia, 
                     serial_equipo_tecnologia, fecha_de_baja, id_persona_responsable, pdf_debaja
@@ -421,7 +422,7 @@ def add_equipos_tecnologia():
                 fecha_ingreso,
                 request.form.get("tipo_equipo"),
                 estado_equipo,
-                request.form.get("ubicacion_original"),
+                request.form.get("id_proceso"),
                 request.form.get("ram"),
                 request.form.get("disco"),
                 # request.form.get("proveedor_responsable"),
@@ -449,6 +450,7 @@ def add_equipos_tecnologia():
 
     return render_template('indexTecnologia.html')
 # ---------------------------INICIA INSERT MASIVO DE EQUIPOS EXCEL DE TECNOLOGIA-----------------------------
+# --------------------------- INSERT MASIVO EXCEL TECNOLOGIA ---------------------------
 @bp.route('/insert_excelTecnologia', methods=['POST'])
 def insert_excel_tecnologia():
 
@@ -465,57 +467,83 @@ def insert_excel_tecnologia():
 
     cur = db.connection.cursor()
 
-    # ===============================
-    # MAPS (consultados una sola vez)
-    # ===============================
+    # ===================================================
+    # CARGAR MAPS UNA SOLA VEZ (BUENA PRÁCTICA)
+    # ===================================================
 
+    # Personas
     cur.execute("SELECT id, documento_identidad FROM tecnologia_persona_responsable")
     persona_map = {str(p[1]).strip().lower(): p[0] for p in cur.fetchall()}
+
+    # Procesos
+    cur.execute("SELECT id, proceso FROM tecnologia_procesos")
+    proceso_map = {str(p[1]).strip().lower(): p[0] for p in cur.fetchall()}
 
     codigos_duplicados = []
     insertados = 0
 
-    # ===============================
-    # ITERAR FILAS (saltando header)
-    # ===============================
+    # ===================================================
+    # ITERAR FILAS
+    # ===================================================
 
     for i, row in enumerate(ws.iter_rows(min_row=2, values_only=True), start=2):
 
         try:
 
+            # ===============================
+            # VALIDACIONES BÁSICAS
+            # ===============================
+
+            if not row[0]:
+                continue
+
             cod_articulo = int(row[0])
             nombre_equipo = row[1]
 
-            # ---------------------------
-            # EXISTENCIA
-            # ---------------------------
+            # Duplicados
             cur.execute("SELECT 1 FROM tecnologia_equipos WHERE cod_articulo=%s", (cod_articulo,))
             if cur.fetchone():
                 codigos_duplicados.append(str(cod_articulo))
                 continue
 
-            # ---------------------------
-            # CAMPOS FECHA
-            # ---------------------------
             fecha_ingreso = row[2]
             tipo_equipo = row[3]
             estado_equipo = str(row[4]).strip().upper()
-            persona_nombre = str(row[5]).strip().lower()
-            persona_id = persona_map.get(persona_nombre)
+
+            # ===============================
+            # PERSONA
+            # ===============================
+
+            persona_texto = str(row[5]).strip().lower()
+            persona_id = persona_map.get(persona_texto)
 
             if not persona_id:
                 flash(f"Fila {i}: persona '{row[5]}' no existe", "error")
                 continue
 
-            ram = row[6]
-            disco = row[7]
-            marca = row[8]
-            modelo = row[9]
-            serial = row[10]
-            software = row[11]
+            # ===============================
+            # PROCESO (CONVERSIÓN TEXTO → ID)
+            # ===============================
 
-            imagen = secure_filename(row[12]) if row[12] else None
+            proceso_texto = str(row[6]).strip().lower()
+            id_proceso = proceso_map.get(proceso_texto)
 
+            if not id_proceso:
+                flash(f"Fila {i}: proceso '{row[6]}' no existe", "error")
+                continue
+
+            # ===============================
+            # RESTO CAMPOS
+            # ===============================
+            ubicacion = row[7]
+            ram = row[8]
+            disco = row[9]
+            marca = row[10]
+            modelo = row[11]
+            serial = row[12]
+            software = row[13]
+
+            imagen = secure_filename(row[14]) if row[14] else None
             ruta_imagen = f"fotos/{imagen}" if imagen else DEFAULT_IMAGE
 
             checkbox_mantenimiento = "Inactivo"
@@ -524,13 +552,11 @@ def insert_excel_tecnologia():
 
             fecha_de_baja = date.today() if estado_equipo == "DE BAJA" else None
 
-            # ---------------------------
-            # BANDERAS
-            # ---------------------------
+            # ===============================
+            # BANDERAS ESTADO
+            # ===============================
 
-            estado_equipo = estado_equipo.upper().strip()
-
-            if estado_equipo in ("USO", "BODEGA"):
+            if estado_equipo in ("USO", "SIN USO"):
                 enable = 1
                 de_baja = 0
                 otros = 0
@@ -549,18 +575,16 @@ def insert_excel_tecnologia():
                 flash(f"Fila {i}: estado '{estado_equipo}' no válido", "error")
                 continue
 
-            # ===========================
-            # INSERT PRINCIPAL
-            # ===========================
+            # ===================================================
+            # INSERT PRINCIPAL (AHORA CON id_proceso)
+            # ===================================================
 
             cur.execute("""
                 INSERT INTO tecnologia_equipos (
                     cod_articulo, nombre_equipo,
-                    # fecha_mantenimiento, vencimiento_mantenimiento,
-                    # fecha_calibracion, vencimiento_calibracion,
                     fecha_ingreso, tipo_equipo,
-                    estado_equipo, ram, disco,
-                    # proveedor_responsable,
+                    estado_equipo, id_proceso,
+                    ubicacion, ram, disco,
                     color, checkbox_mantenimiento, checkbox_calibracion,
                     imagen, software_instalado,
                     marca_equipo_tecnologia,
@@ -570,14 +594,17 @@ def insert_excel_tecnologia():
                     enable, de_baja, otros_equipos_tecnologia
                 )
                 VALUES (%s,%s,%s,%s,%s,%s,
-                        %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,
-                        %s,%s,%s)
+                        %s,%s,%s,%s,%s,%s,%s,
+                        %s,%s,%s,%s,
+                        %s,%s,%s,%s)
             """, (
                 cod_articulo,
                 nombre_equipo,
                 fecha_ingreso,
                 tipo_equipo,
                 estado_equipo,
+                id_proceso,
+                ubicacion,
                 ram,
                 disco,
                 color,
@@ -594,20 +621,18 @@ def insert_excel_tecnologia():
                 otros
             ))
 
-            # ===========================
-            # INSERT DE BAJA
-            # ===========================
+            # ===================================================
+            # INSERT EN DE BAJA
+            # ===================================================
 
             if estado_equipo == "DE BAJA":
 
                 cur.execute("""
                     INSERT INTO tecnologia_equipos_debaja (
                         cod_articulo, nombre_equipo,
-                        # fecha_mantenimiento, vencimiento_mantenimiento,
-                        # fecha_calibracion, vencimiento_calibracion,
                         fecha_ingreso, tipo_equipo,
-                        estado_equipo, ram, disco,
-                        # proveedor_responsable,
+                        estado_equipo, id_proceso,
+                        ram, disco,
                         color, checkbox_mantenimiento, checkbox_calibracion,
                         imagen, software_instalado,
                         marca_equipo_tecnologia,
@@ -617,13 +642,15 @@ def insert_excel_tecnologia():
                         id_persona_responsable
                     )
                     VALUES (%s,%s,%s,%s,%s,%s,
-                            %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                            %s,%s,%s,%s,%s,%s,%s,
+                            %s,%s,%s,%s,%s)
                 """, (
                     cod_articulo,
                     nombre_equipo,
                     fecha_ingreso,
                     tipo_equipo,
                     estado_equipo,
+                    id_proceso,
                     ram,
                     disco,
                     color,
@@ -645,9 +672,9 @@ def insert_excel_tecnologia():
 
     db.connection.commit()
 
-    # ===============================
+    # ===================================================
     # MENSAJES
-    # ===============================
+    # ===================================================
 
     if codigos_duplicados:
         flash(f"Códigos duplicados no insertados: {', '.join(codigos_duplicados)}", "warning")
@@ -667,7 +694,7 @@ def checkbox_programacion_mantenimiento_tecnologia():
         seleccionados = request.form.getlist('seleccionados[]')
         proveedor_id = request.form.get('proveedor_id')
         persona_id = request.form.get('persona_id')
-        ubicacion_id = request.form.get('ubicacion_id')
+        proceso_id = request.form.get('proceso_id')
 
         if not seleccionados or not proveedor_id:
             return jsonify({'success': False, 'message': 'Faltan productos seleccionados o proveedor.'})
@@ -679,7 +706,7 @@ def checkbox_programacion_mantenimiento_tecnologia():
 
         for cod in seleccionados:
             nombre_equipo = request.form.get(f'nombre_equipo_{cod}')
-            # ubicacion_id = request.form.get(f'ubicacion_{cod}')
+            # proceso_id = request.form.get(f'proceso_{cod}')
             periodicidad_m = request.form.get(f'periodicidad_mantenimiento_{cod}')
             periodicidad_c = request.form.get(f'periodicidad_calibracion_{cod}')
 
@@ -705,12 +732,12 @@ def checkbox_programacion_mantenimiento_tecnologia():
                 )
                 cur.execute(
                     """INSERT INTO tecnologia_historial_preventivo 
-                            (cod_articulo, nombre_equipo, ubicacion_original, fecha_mantenimiento, vencimiento_mantenimiento, periodicidad, id_proveedor_responsable, id_persona_responsable) 
+                            (cod_articulo, nombre_equipo, id_proceso, fecha_mantenimiento, vencimiento_mantenimiento, periodicidad, id_proveedor_responsable, id_persona_responsable) 
                             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
                     (
                         cod,
                         nombre_equipo,
-                        ubicacion_id,
+                        proceso_id,
                         fecha_m,
                         vencimiento_m,
                         periodicidad_m,
@@ -730,12 +757,12 @@ def checkbox_programacion_mantenimiento_tecnologia():
                 )
                 cur.execute(
                     """INSERT INTO tecnologia_historial_correctivo 
-                            (cod_articulo, nombre_equipo, ubicacion_original, fecha_calibracion, vencimiento_calibracion, periodicidad_calibracion, id_proveedor_responsable, id_persona_responsable) 
+                            (cod_articulo, nombre_equipo, id_proceso, fecha_calibracion, vencimiento_calibracion, periodicidad_calibracion, id_proveedor_responsable, id_persona_responsable) 
                             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
                     (
                         cod,
                         nombre_equipo,
-                        ubicacion_id,
+                        proceso_id,
                         fecha_c,
                         vencimiento_c,
                         periodicidad_c,
@@ -767,13 +794,13 @@ def get_datos_persona(id):
             SELECT 
                 p.id AS persona_id,
                 p.nombre_contratista,
-                u.id AS ubicacion_id,
-                u.ubicacion_original
+                u.id AS proceso_id,
+                u.proceso
             FROM tecnologia_equipos e
             LEFT JOIN tecnologia_persona_responsable p 
                 ON e.id_persona_responsable = p.id
-            LEFT JOIN tecnologia_ubicacion_equipos u 
-                ON e.ubicacion_original = u.id
+            LEFT JOIN tecnologia_procesos u 
+                ON e.id_proceso = u.id
             WHERE e.cod_articulo = %s
             LIMIT 1
         """, (id,))
@@ -860,11 +887,11 @@ def update_estado_equipo_tecnologia():
         tipo_equipo = request.form.get ("tipo_equipo")
         # estado_equipo= request.form ['estado_equipo']
 
-        ubicacion_original_raw = request.form.get ("ubicacion_original")
-        if ubicacion_original_raw in (None, "", "None"):
-            ubicacion_original = None
+        id_proceso_raw = request.form.get ("id_proceso")
+        if id_proceso_raw in (None, "", "None"):
+            id_proceso = None
         else:
-            ubicacion_original = int(ubicacion_original_raw)
+            id_proceso = int(id_proceso_raw)
 
 
         ram = request.form.get ("ram")
@@ -942,7 +969,7 @@ def update_estado_equipo_tecnologia():
             # Insertar el equipo en tecnologia_equipos_debaja si no existe
             if not equipo_existente:
                 cur.execute("""INSERT INTO tecnologia_equipos_debaja (cod_articulo, nombre_equipo, fecha_mantenimiento, vencimiento_mantenimiento, fecha_calibracion, vencimiento_calibracion, fecha_ingreso,
-                                                                periodicidad, tipo_equipo, estado_equipo, ubicacion_original, ram, disco, proveedor_responsable, color, imagen, software_instalado,
+                                                                periodicidad, tipo_equipo, estado_equipo, id_proceso, ram, disco, proveedor_responsable, color, imagen, software_instalado,
                                                                 periodicidad_calibracion, marca_equipo_tecnologia, modelo_equipo_tecnologia, serial_equipo_tecnologia, id_persona_responsable, pdf_debaja, fecha_de_baja) 
                                                                 VALUES ( %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
                     (
@@ -956,7 +983,7 @@ def update_estado_equipo_tecnologia():
                         periodicidad,
                         tipo_equipo,
                         nuevo_estado,  # Estado del equipo
-                        ubicacion_original,
+                        id_proceso,
                         ram,
                         disco,
                         proveedor_responsable,
@@ -1003,7 +1030,7 @@ def guardar_historial_tecnologia():
     data = request.get_json()
     proveedor_id = data.get('proveedorId')
     persona_id = data.get('personaId')
-    ubicacion_id = data.get('ubicacionId')
+    proceso_id = data.get('procesoId')
     observaciones_id = data.get('observacionesId')
     nueva_fecha_str = data.get('nuevaFecha')
     correo_externo = data.get('correoExterno')
@@ -1020,8 +1047,8 @@ def guardar_historial_tecnologia():
         cur.execute("SELECT nombre_tecnico FROM tecnologia_tecnico_responsable WHERE id = %s", (proveedor_id,))
         nombre_tecnico = (cur.fetchone() or [None])[0] or "No asignado"
 
-        cur.execute("SELECT ubicacion_original FROM tecnologia_ubicacion_equipos WHERE id = %s", (ubicacion_id,))
-        ubicacion_nombre = (cur.fetchone() or [None])[0] or "Sin ubicación"
+        cur.execute("SELECT proceso FROM tecnologia_procesos WHERE id = %s", (proceso_id,))
+        proceso_nombre = (cur.fetchone() or [None])[0] or "Sin Proceso"
 
         cur.execute("SELECT nombre_contratista FROM tecnologia_persona_responsable WHERE id = %s", (persona_id,))
         persona_nombre = (cur.fetchone() or [None])[0] or "No asignado"
@@ -1049,12 +1076,12 @@ def guardar_historial_tecnologia():
                 # Guardar en historial preventivo
                 cur.execute(
                     """INSERT INTO tecnologia_historial_preventivo 
-                    (cod_articulo, nombre_equipo, ubicacion_original, fecha_mantenimiento, vencimiento_mantenimiento, periodicidad, id_proveedor_responsable, id_persona_responsable, observaciones)
+                    (cod_articulo, nombre_equipo, id_proceso, fecha_mantenimiento, vencimiento_mantenimiento, periodicidad, id_proveedor_responsable, id_persona_responsable, observaciones)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)""",
                     (
                         producto_id,
                         nombre_equipo,
-                        ubicacion_id,
+                        proceso_id,
                         fecha_actual,            # fecha anterior guardada
                         nueva_fecha,             # vencimiento será la nueva fecha elegida
                         nueva_periodicidad,
@@ -1069,8 +1096,8 @@ def guardar_historial_tecnologia():
 
                 # Actualizar en tecnologia_equipos solo los preventivos
                 cur.execute(
-                    "UPDATE tecnologia_equipos SET fecha_mantenimiento = %s, vencimiento_mantenimiento = %s, periodicidad = %s, proveedor_responsable = %s, id_persona_responsable= %s, ubicacion_original= %s WHERE cod_articulo = %s",
-                    (nueva_fecha, nuevo_vencimiento, nueva_periodicidad, proveedor_id, persona_id, ubicacion_id, producto_id)
+                    "UPDATE tecnologia_equipos SET fecha_mantenimiento = %s, vencimiento_mantenimiento = %s, periodicidad = %s, proveedor_responsable = %s, id_persona_responsable= %s, id_proceso= %s WHERE cod_articulo = %s",
+                    (nueva_fecha, nuevo_vencimiento, nueva_periodicidad, proveedor_id, persona_id, proceso_id, producto_id)
                 )
             
             # Obtener datos actuales para historial correctivo
@@ -1084,12 +1111,12 @@ def guardar_historial_tecnologia():
                 # Guardar en historial correctivo
                 cur.execute(
                     """INSERT INTO tecnologia_historial_correctivo 
-                    (cod_articulo, nombre_equipo, ubicacion_original, fecha_calibracion, vencimiento_calibracion, periodicidad_calibracion, id_proveedor_responsable, id_persona_responsable, observaciones)
+                    (cod_articulo, nombre_equipo, id_proceso, fecha_calibracion, vencimiento_calibracion, periodicidad_calibracion, id_proveedor_responsable, id_persona_responsable, observaciones)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)""",
                     (
                         producto_id,
                         nombre_equipo,
-                        ubicacion_id,
+                        proceso_id,
                         fecha_actual,
                         nueva_fecha,
                         nueva_periodicidad,
@@ -1104,8 +1131,8 @@ def guardar_historial_tecnologia():
 
                 # Actualizar en tecnologia_equipos tanto los correctivos como los preventivos
                 cur.execute(
-                    "UPDATE tecnologia_equipos SET fecha_calibracion = %s, vencimiento_calibracion = %s, periodicidad_calibracion = %s, fecha_mantenimiento = %s, vencimiento_mantenimiento = %s, periodicidad = %s, proveedor_responsable = %s, id_persona_responsable= %s, ubicacion_original= %s WHERE cod_articulo = %s",
-                    (nueva_fecha, nuevo_vencimiento, nueva_periodicidad, nueva_fecha, nuevo_vencimiento, nueva_periodicidad, proveedor_id, persona_id, ubicacion_id, producto_id)
+                    "UPDATE tecnologia_equipos SET fecha_calibracion = %s, vencimiento_calibracion = %s, periodicidad_calibracion = %s, fecha_mantenimiento = %s, vencimiento_mantenimiento = %s, periodicidad = %s, proveedor_responsable = %s, id_persona_responsable= %s, id_proceso= %s WHERE cod_articulo = %s",
+                    (nueva_fecha, nuevo_vencimiento, nueva_periodicidad, nueva_fecha, nuevo_vencimiento, nueva_periodicidad, proveedor_id, persona_id, proceso_id, producto_id)
                 )
 
         db.connection.commit()
@@ -1114,7 +1141,7 @@ def guardar_historial_tecnologia():
             send_mantenimiento_notification_html(
                 lista_equipos,
                 nombre_tecnico=nombre_tecnico,  # puedes obtenerlo con una consulta
-                ubicacion_original=ubicacion_nombre,  # idem, desde ubicacion_id
+                id_proceso=proceso_nombre,  # idem, desde proceso_id
                 persona_responsable=persona_nombre,   # desde persona_id
                 # observaciones=observaciones_id,
                 email_recibe=correo_externo,
@@ -1141,7 +1168,7 @@ def GET_EQUIPO_TECNOLOGIA(id,vista):
            cod_articulo,
            nombre_equipo,
            estado_equipo,
-           ubicacion_original,
+           id_proceso,
            marca_equipo_tecnologia,
            modelo_equipo_tecnologia,
            serial_equipo_tecnologia,
@@ -1158,7 +1185,8 @@ def GET_EQUIPO_TECNOLOGIA(id,vista):
            fecha_calibracion,
            vencimiento_calibracion,
            imagen,
-           id_persona_responsable
+           id_persona_responsable,
+           ubicacion
     FROM tecnologia_equipos
     WHERE id = %s""", [id])
     elif vista == 'equiposDeBajaTecnologia':
@@ -1187,10 +1215,10 @@ def GET_EQUIPO_TECNOLOGIA(id,vista):
     personas_data = cur.fetchall()
     personas = {p["id"]: p["nombre_contratista"] for p in personas_data}
 
-    # Ubicacion Original
-    cur.execute('SELECT id, ubicacion_original FROM tecnologia_ubicacion_equipos')
-    ubicacionEquipos_data = cur.fetchall()
-    ubicacionEquipos = {p["id"]: p["ubicacion_original"] for p in ubicacionEquipos_data}
+    # Proceso
+    cur.execute('SELECT id, proceso FROM tecnologia_procesos')
+    procesoEquipos_data = cur.fetchall()
+    procesoEquipos = {p["id"]: p["proceso"] for p in procesoEquipos_data}
 
     historial = {
         'preventivo': historial_mantenimiento,
@@ -1203,7 +1231,7 @@ def GET_EQUIPO_TECNOLOGIA(id,vista):
         cod_articulo=cod_articulo,
         historial=historial,
         personas=personas,
-        ubicacionEquipos=ubicacionEquipos
+        procesoEquipos=procesoEquipos
     )
 
 # FUNCIÓN ACTUALIZAR EDITAR/VER HOJA DE VIDA
@@ -1212,7 +1240,8 @@ def ACTUALIZAR_EQUIPO_TECNOLOGIA(id):
     if request.method =='POST':
         # cod_articulo = request.form ['cod_articulo']
         nombre_equipo = request.form ['nombre_equipo']
-        ubicacion_original = request.form ['ubicacion_original'] or None
+        id_proceso = request.form ['id_proceso'] or None
+        ubicacion = request.form ['ubicacion'] or None
         software_instalado = request.form ['software_instalado'] or None
         marca_equipo_tecnologia = request.form ['marca_equipo_tecnologia'] or None
         modelo_equipo_tecnologia = request.form ['modelo_equipo_tecnologia'] or None
@@ -1262,13 +1291,14 @@ def ACTUALIZAR_EQUIPO_TECNOLOGIA(id):
 
         # Obtener las fechas actuales antes de actualizar
         cur.execute(
-            """ UPDATE tecnologia_equipos SET  nombre_equipo = %s, ubicacion_original = %s, software_instalado = %s, marca_equipo_tecnologia = %s, modelo_equipo_tecnologia = %s, 
+            """ UPDATE tecnologia_equipos SET  nombre_equipo = %s, id_proceso = %s, ubicacion = %s, software_instalado = %s, marca_equipo_tecnologia = %s, modelo_equipo_tecnologia = %s, 
                 serial_equipo_tecnologia =%s, ram =%s, disco =%s, fecha_mantenimiento = %s, vencimiento_mantenimiento = %s, fecha_calibracion = %s, vencimiento_calibracion = %s,
                 fecha_ingreso = %s, periodicidad = %s, color = %s, periodicidad_calibracion = %s WHERE id = %s""",
             (
                 # cod_articulo,
                 nombre_equipo,
-                ubicacion_original,
+                id_proceso,
+                ubicacion,
                 software_instalado,
                 marca_equipo_tecnologia,
                 modelo_equipo_tecnologia,
@@ -1293,9 +1323,9 @@ def ACTUALIZAR_EQUIPO_TECNOLOGIA(id):
         cur.execute("SELECT * FROM tecnologia_equipos WHERE id = %s", (id,))
         producto = cur.fetchone()
 
-        # Obtener todas las ubicaciones
-        cur.execute("SELECT id, ubicacion_original FROM tecnologia_ubicacion_equipos")
-        ubicacionEquipos = cur.fetchall()
+        # Obtener todos los procesos
+        cur.execute("SELECT id, proceso FROM tecnologia_procesos")
+        procesoEquipos = cur.fetchall()
 
         flash('Equipo actualizado satisfactoriamente', 'success')
         return redirect(url_for('main.indexTecnologia', id=id))
@@ -1308,7 +1338,7 @@ def HISTORIAL_PREVENTIVO_TECNOLOGIA(cod_articulo):
     try:
         cur.execute(
             """
-            SELECT id, cod_articulo, nombre_equipo, ubicacion_original, fecha_mantenimiento, 
+            SELECT id, cod_articulo, nombre_equipo, id_proceso, fecha_mantenimiento, 
                    vencimiento_mantenimiento, periodicidad, id_proveedor_responsable, id_persona_responsable, observaciones
             FROM tecnologia_historial_preventivo 
             WHERE cod_articulo = %s 
@@ -1328,16 +1358,16 @@ def HISTORIAL_PREVENTIVO_TECNOLOGIA(cod_articulo):
         personas_data = cur.fetchall()
         personas = {r["id"]: r["nombre_contratista"] for r in personas_data}
 
-        cur.execute('SELECT id, ubicacion_original FROM tecnologia_ubicacion_equipos')
-        ubicacionEquipos_data = cur.fetchall()
-        ubicacionEquipos = {p["id"]: p["ubicacion_original"] for p in ubicacionEquipos_data}
+        cur.execute('SELECT id, proceso FROM tecnologia_procesos')
+        procesoEquipos_data = cur.fetchall()
+        procesoEquipos = {p["id"]: p["proceso"] for p in procesoEquipos_data}
 
         historial = {
             'preventivo': preventivo
             # 'correctivo': correctivo
         }
 
-        return render_template('historialPreventivoTecnologia.html', historial=historial, proveedores=proveedores, personas=personas, ubicacionEquipos=ubicacionEquipos)
+        return render_template('historialPreventivoTecnologia.html', historial=historial, proveedores=proveedores, personas=personas, procesoEquipos=procesoEquipos)
 
     except Exception as e:
         print(f"Error al obtener el historial: {str(e)}")
@@ -1355,7 +1385,7 @@ def HISTORIAL_CORRECTIVO_TECNOLOGIA(cod_articulo):
     try:
         cur.execute(
             """
-            SELECT id, cod_articulo, nombre_equipo, ubicacion_original, fecha_calibracion, 
+            SELECT id, cod_articulo, nombre_equipo, id_proceso, fecha_calibracion, 
                    vencimiento_calibracion, periodicidad_calibracion, id_proveedor_responsable, id_persona_responsable, observaciones
             FROM tecnologia_historial_correctivo 
             WHERE cod_articulo = %s 
@@ -1375,16 +1405,16 @@ def HISTORIAL_CORRECTIVO_TECNOLOGIA(cod_articulo):
         personas_data = cur.fetchall()
         personas = {r["id"]: r["nombre_contratista"] for r in personas_data}
 
-        cur.execute('SELECT id, ubicacion_original FROM tecnologia_ubicacion_equipos')
-        ubicacionEquipos_data = cur.fetchall()
-        ubicacionEquipos = {p["id"]: p["ubicacion_original"] for p in ubicacionEquipos_data}
+        cur.execute('SELECT id, proceso FROM tecnologia_procesos')
+        procesoEquipos_data = cur.fetchall()
+        procesoEquipos = {p["id"]: p["proceso"] for p in procesoEquipos_data}
 
         historial = {
             # 'preventivo': preventivo,
             'correctivo': correctivo
         }
 
-        return render_template('historialCorrectivoTecnologia.html', historial=historial, proveedores=proveedores, personas=personas, ubicacionEquipos=ubicacionEquipos)
+        return render_template('historialCorrectivoTecnologia.html', historial=historial, proveedores=proveedores, personas=personas, procesoEquipos=procesoEquipos)
 
     except Exception as e:
         print(f"Error al obtener el historial: {str(e)}")
@@ -1495,14 +1525,14 @@ def index_otros_equipos_tecnologia():
     cur.execute('SELECT id, estado_equipo FROM tecnologia_estados_equipos')
     estadoEquipos = cur.fetchall()
 
-    cur.execute('SELECT id, ubicacion_original FROM tecnologia_ubicacion_equipos')
-    ubicacionEquipos = cur.fetchall()
+    cur.execute('SELECT id, proceso FROM tecnologia_procesos')
+    procesoEquipos = cur.fetchall()
 
-    cur.execute('SELECT id, ubicacion_original FROM tecnologia_ubicacion_equipos')
-    ubicacionEquipos_data = cur.fetchall()
-    ubicacionEquiposModal = {p["id"]: p["ubicacion_original"] for p in ubicacionEquipos_data}
+    cur.execute('SELECT id, proceso FROM tecnologia_procesos')
+    procesoEquipos_data = cur.fetchall()
+    procesoEquiposModal = {p["id"]: p["proceso"] for p in procesoEquipos_data}
     # print(ubicacionEquipos)
-    return render_template('IndexOtrosEquiposTecnologia.html', tecnologia_equipos=data_otros_equipos_tecnologia, tipoEquipos=tipoEquipos, proveedores=proveedores, personas=personas, estadoEquipos=estadoEquipos, ubicacionEquipos=ubicacionEquipos, ubicacionEquiposModal=ubicacionEquiposModal)
+    return render_template('IndexOtrosEquiposTecnologia.html', tecnologia_equipos=data_otros_equipos_tecnologia, tipoEquipos=tipoEquipos, proveedores=proveedores, personas=personas, estadoEquipos=estadoEquipos, procesoEquipos=procesoEquipos, procesoEquiposModal=procesoEquiposModal)
 # ==========================INICIA FUNCIÓN EQUIPOS DADOS DE BAJA TECNOLOGIA=====================
 @bp.route('/equiposDeBajaTecnologia')
 @login_required
@@ -1529,32 +1559,32 @@ def ELIMINAR_CONTACTO(id):
 # --------------------------- FINALIZA MODULO DE TECNOLOGIA-----------------------------
 
 # ---------------------------FUNCIÓN PARA EL MANEJO DE LOS MODULOS-----------------------------
-@bp.route('/<modulo>')
-@login_required
-def index_modulo(modulo):
-    modulos_validos = ['salud', 'gastronomia', 'lacma', 'arquitectura']
+# @bp.route('/<modulo>')
+# @login_required
+# def index_modulo(modulo):
+#     modulos_validos = ['salud', 'gastronomia', 'lacma', 'arquitectura']
     
-    if modulo not in modulos_validos:
-        # flash("Modulo no válido", "error")
-        return redirect(url_for('main.home'))  # <-- redirige al home si no existe
+#     if modulo not in modulos_validos:
+#         # flash("Modulo no válido", "error")
+#         return redirect(url_for('main.home'))  # <-- redirige al home si no existe
     
-    cur = db.connection.cursor(MySQLdb.cursors.DictCursor)
+#     cur = db.connection.cursor(MySQLdb.cursors.DictCursor)
 
-    # Traer equipos solo del modulo actual
-    cur.execute("""SELECT i.*, p.enable_prestamos FROM indexssalud i LEFT JOIN prestamos_equiposalud p ON i.cod_articulo = p.cod_articulo AND p.enable_prestamos = 1 WHERE i.enable=1 AND i.de_baja=0 AND i.modulo=%s""", (modulo,))
-    equipos = cur.fetchall()
+#     # Traer equipos solo del modulo actual
+#     cur.execute("""SELECT i.*, p.enable_prestamos FROM indexssalud i LEFT JOIN prestamos_equiposalud p ON i.cod_articulo = p.cod_articulo AND p.enable_prestamos = 1 WHERE i.enable=1 AND i.de_baja=0 AND i.modulo=%s""", (modulo,))
+#     equipos = cur.fetchall()
 
-    # Traer proveedores, estados y ubicaciones
-    cur.execute('SELECT id, nombre_empresa FROM datosproveedorsalud')
-    proveedores = cur.fetchall()
+#     # Traer proveedores, estados y procesos
+#     cur.execute('SELECT id, nombre_empresa FROM datosproveedorsalud')
+#     proveedores = cur.fetchall()
 
-    cur.execute('SELECT id, estado_equipo FROM estados_equipos')
-    estadoEquipos = cur.fetchall()
+#     cur.execute('SELECT id, estado_equipo FROM estados_equipos')
+#     estadoEquipos = cur.fetchall()
 
-    cur.execute('SELECT id, ubicacion_original FROM ubicacion_equipos')
-    ubicacionEquipos = cur.fetchall()
+#     cur.execute('SELECT id, ubicacion_original FROM ubicacion_equipos')
+#     ubicacionEquipos = cur.fetchall()
 
-    return render_template(f'indexSalud.html', indexssalud=equipos, proveedores=proveedores, estadoEquipos=estadoEquipos, ubicacionEquipos=ubicacionEquipos, modulo=modulo)
+#     return render_template(f'indexSalud.html', indexssalud=equipos, proveedores=proveedores, estadoEquipos=estadoEquipos, ubicacionEquipos=ubicacionEquipos, modulo=modulo)
 
     
 # ---------------------------FUNCION PARA CARGAR IMAGEN DEL EQUIPO DESDE LA TABLA indexSalud EN EL CAMPO ACCIONES SUBIR_IMAGEN-----------------------------  
@@ -1804,7 +1834,8 @@ def exportCsv():
             i.fecha_calibracion,
             i.vencimiento_calibracion,
             i.estado_equipo,
-            u.ubicacion_original AS proceso,
+            u.id_proceso AS proceso,
+            i.ubicacion,
             i.marca_equipo_tecnologia,
             i.modelo_equipo_tecnologia,
             i.serial_equipo_tecnologia,
@@ -1820,7 +1851,7 @@ def exportCsv():
         LEFT JOIN tecnologia_tecnico_responsable t ON i.proveedor_responsable = t.id
         LEFT JOIN tecnologia_persona_responsable q ON i.id_persona_responsable = q.id
         LEFT JOIN tecnologia_persona_responsable p ON i.id_persona_responsable = p.id
-        LEFT JOIN tecnologia_ubicacion_equipos u ON i.ubicacion_original = u.id
+        LEFT JOIN tecnologia_procesos u ON i.id_proceso = u.id
         WHERE i.de_baja = 0
         ORDER BY i.cod_articulo ASC
     """)
@@ -1843,6 +1874,7 @@ def exportCsv():
         'Fecha Vencimiento Correctivo',
         'Estado Equipo',
         'Proceso',
+        'Ubicación',
         'Marca Equipo',
         'Modelo Equipo',
         'Serial Equipo',
@@ -1951,10 +1983,33 @@ def download_template_excel_tecnologia():
     ws = wb.active
     ws.title = "PLANTILLA_TECNOLOGIA"
 
-    # ======================================
-    # ENCABEZADOS
-    # ======================================
+    # ================================
+    # 1) OBTENER PROCESOS DESDE LA BD
+    # ================================
+    cur = db.connection.cursor()
+    cur.execute("SELECT id, proceso FROM tecnologia_procesos ORDER BY proceso ASC")
+    procesos = cur.fetchall()
+    cur.close()
 
+    # ================================
+    # 2) CREAR HOJA OCULTA DE CATÁLOGOS
+    # ================================
+    ws_catalogos = wb.create_sheet("CATALOGOS")
+
+    ws_catalogos["A1"] = "PROCESOS"
+    ws_catalogos["A1"].font = Font(bold=True)
+
+    for i, p in enumerate(procesos, start=2):
+        ws_catalogos.cell(row=i, column=1, value=p[1])  # nombre proceso
+
+    # Ocultar hoja
+    ws_catalogos.sheet_state = "hidden"
+
+    total_procesos = len(procesos)
+
+    # ================================
+    # 3) ENCABEZADOS (AGREGAMOS PROCESO)
+    # ================================
     headers = [
         "Placa Equipo",
         "Nombre Equipo",
@@ -1962,6 +2017,8 @@ def download_template_excel_tecnologia():
         "Tipo de Equipo",
         "Estado de Equipo",
         "Persona Responsable del Equipo",
+        "Proceso",
+        "Ubicación",
         "Memoria Ram",
         "Disco Duro",
         "Marca Equipo",
@@ -1974,9 +2031,9 @@ def download_template_excel_tecnologia():
     for col, header in enumerate(headers, start=1):
         ws.cell(row=1, column=col, value=header)
 
-    # ======================================
-    # VALIDACIONES
-    # ======================================
+    # ================================
+    # 4) VALIDACIONES
+    # ================================
 
     # ---- Tipo Equipo
     tipos_equipo = DataValidation(
@@ -1984,40 +2041,52 @@ def download_template_excel_tecnologia():
         formula1='"PORTATIL,TEU (Todo en Uno),CPU,TABLET,VIDEOBEAM"',
         allow_blank=True
     )
-
     ws.add_data_validation(tipos_equipo)
     tipos_equipo.add("D2:D1000")
 
     # ---- Estado Equipo
     estados_equipo = DataValidation(
         type="list",
-        formula1='"USO,BODEGA,OTROS EQUIPOS"',
+        formula1='"USO,SIN USO,OTROS EQUIPOS"',
         allow_blank=True
     )
-
     ws.add_data_validation(estados_equipo)
     estados_equipo.add("E2:E1000")
 
-    # ======================================
-    # ESTILO ENCABEZADOS
-    # ======================================
+    # ---- Proceso (desde hoja CATALOGOS)
+    # Rango dinámico: CATALOGOS!A2:A{N}
+    if total_procesos > 0:
+        rango_procesos = f"=CATALOGOS!$A$2:$A${total_procesos + 1}"
 
+        procesos_validation = DataValidation(
+            type="list",
+            formula1=rango_procesos,
+            allow_blank=False
+        )
+
+        ws.add_data_validation(procesos_validation)
+        procesos_validation.add("G2:G1000")  # Columna Proceso
+
+    # ================================
+    # 5) ESTILO ENCABEZADOS
+    # ================================
     for col in ws[1]:
         col.font = Font(bold=True)
         col.alignment = Alignment(horizontal="center")
         ws.column_dimensions[col.column_letter].width = 28
 
-    # ======================================
-    # FILA DATOS EJEMPLO
-    # ======================================
-
+    # ================================
+    # 6) FILA EJEMPLO
+    # ================================
     datos = [
         "1",
         "T1",
         "2022/01/01 (Ó CAMPO VACIO)",
-        "SELECCIONE UNA OPCIÓN",
-        "SELECCIONE UNA OPCIÓN",
+        "SELECCIONE UN TIPO",
+        "SELECCIONE UN ESTADO",
         "123456(NÚMERO DE DOCTO DEL LIDER DEL PROCESO SIN PUNTOS)",
+        "SELECCIONE PROCESO",
+        "Auditorio",
         "8GB",
         "500GB",
         "LENOVO THINKPAD",
@@ -2030,10 +2099,9 @@ def download_template_excel_tecnologia():
     for col, value in enumerate(datos, start=1):
         ws.cell(row=2, column=col, value=value)
 
-    # ======================================
-    # DESCARGAR ARCHIVO
-    # ======================================
-
+    # ================================
+    # 7) DESCARGAR ARCHIVO
+    # ================================
     stream = BytesIO()
     wb.save(stream)
     stream.seek(0)
@@ -2044,4 +2112,4 @@ def download_template_excel_tecnologia():
         download_name="plantilla_carga_inventario_tecnologia.xlsx",
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
-# ----------------INICIA FUNCIÓN DE DESCARGUE DE PLANTILLA PARA INSERT MASIVO ----------------------
+# ----------------FINALIZA FUNCIÓN DE DESCARGUE DE PLANTILLA PARA INSERT MASIVO ----------------------

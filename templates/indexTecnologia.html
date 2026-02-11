@@ -65,13 +65,13 @@
                                     </div>
 
                                     <div class="col-md-6 form-group">
-                                        <label for="ubicacion_original">Proceso</label>
-                                        <select id="ubicacion_original" name="ubicacion_original" class="form-control" required>
+                                        <label for="id_proceso">Proceso</label>
+                                        <select id="id_proceso" name="id_proceso" class="form-control" required>
 
                                             <option value="" disabled selected>Seleccione Proceso</option>
 
-                                            {% for ubicacionEquipo in ubicacionEquipos %}
-                                            <option value="{{ ubicacionEquipo.id }}">{{ ubicacionEquipo.ubicacion_original }}</option>
+                                            {% for procesoEquipo in procesoEquipos %}
+                                            <option value="{{ procesoEquipo.id }}">{{ procesoEquipo.proceso }}</option>
                                             {% endfor %}
                                         </select>
                                     </div>
@@ -89,8 +89,11 @@
                                     </div>
 
                                     <div class="col-md-6 form-group">
-                                        <input type="text" name="ram" placeholder="Memoria Ram"
-                                            class="form-control" required>
+                                        <input type="text" name="ubicacion" placeholder="Ubicación" class="form-control">
+                                    </div>
+
+                                    <div class="col-md-6 form-group">
+                                        <input type="text" name="ram" placeholder="Memoria Ram" class="form-control">
                                     </div>
 
                                     <div class="col-md-6 form-group">
@@ -109,7 +112,7 @@
                                         <input type="text" name="serial_equipo_tecnologia" placeholder="Serial Equipo" class="form-control">
                                     </div>
 
-                                    <div class="col-md-6 form-group">
+                                    <div class="col-md-6 form-group mt-4">
                                          <input type="text" name="software_instalado" placeholder="Software Instalado" class="form-control">
                                     </div>
 
@@ -118,7 +121,7 @@
                                         <input id="fecha_ingreso" type="date" name="fecha_ingreso" class="form-control">
                                     </div>
                                     
-                                    <div class="col-md-6 form-group mt-4">
+                                    <div class="col-md-6 form-group">
                                         <!-- Subir Imagen -->
                                         <label for="imagen_producto" class="btn btn-secondary">Subir Imagen</label>
                                         <input type="file" id="imagen_producto" name="imagen_producto" class="d-none" >
@@ -193,15 +196,15 @@
                             </select>
                             </div>
 
-                            <!-- Ubicacion equipos -->
+                            <!-- Selector de proceso -->
                             <div class="col-md-3">
-                            <label for="selectUbicacion" class="form-label">Proceso</label>
-                            <select name="ubicacion_id" id="selectUbicacion" class="form-control" required>
+                            <label for="selectProceso" class="form-label">Proceso</label>
+                            <select name="proceso_id" id="selectProceso" class="form-control" required>
                                 <!-- Opción inicial -->
                                 <option value="" disabled selected>Seleccione Proceso</option>
                                 <!-- Opciones que se encuentran en la DB -->
-                                {% for ubicacionEquipo in ubicacionEquipos %}
-                                <option value="{{ ubicacionEquipo.id }}">{{ ubicacionEquipo.ubicacion_original }}</option>
+                                {% for procesoEquipo in procesoEquipos %}
+                                <option value="{{ procesoEquipo.id }}">{{ procesoEquipo.proceso }}</option>
                                 {% endfor %}
                             </select>
                             </div>
@@ -265,6 +268,7 @@
                                     <th>Tipo Equipo</th>
                                     <th>Estado Equipo</th>
                                     <th>Proceso</th>
+                                    <th>Ubicación</th>
                                     <th>Software</th>
                                     <!-- <th>Disco Duro</th> Criticos -->
                                     <!--<th>Tecnico Responsable</th> Proveedor de Venta -->
@@ -296,7 +300,7 @@
                                             CheckboxMantenimiento="fecha_mantenimiento" 
                                             data-producto-id="{{ producto.cod_articulo }}"
                                             data-nombre-equipo="{{ producto.nombre_equipo or '' }}"
-                                            data-ubicacion-original="{{ producto.ubicacion_original or '' }}"
+                                            data-proceso-original="{{ producto.id_proceso or '' }}"
                                             data-estado-inicial="{{ producto.checkbox_mantenimiento }}" 
                                             data-periodicidad-mantenimiento="{{ producto.periodicidad or '' }}" 
                                             data-fecha-mantenimiento="{{ producto.fecha_mantenimiento or '' }}" 
@@ -320,7 +324,7 @@
                                             CheckboxMantenimiento="fecha_calibracion"
                                             data-producto-id="{{ producto.cod_articulo }}" 
                                             data-nombre-equipo="{{ producto.nombre_equipo }}"
-                                            data-ubicacion-original="{{ producto.ubicacion_original }}"
+                                            data-proceso-original="{{ producto.id_proceso }}"
                                             data-estado-inicial="{{ producto.checkbox_calibracion }}"
                                             data-periodicidad-calibracion="{{ producto.periodicidad_calibracion or '' }}" 
                                             data-fecha-calibracion="{{ producto.fecha_calibracion or '' }}" 
@@ -358,7 +362,7 @@
                                             <input type="hidden" name="periodicidad" value="{{ producto.periodicidad }}">
                                             <input type="hidden" name="tipo_equipo" value="{{ producto.tipo_equipo }}">
                                             <input type="hidden" name="estado_equipo" value="{{ producto.estado_equipo }}">
-                                            <input type="hidden" name="ubicacion_original" value="{{ producto.ubicacion_original }}">
+                                            <input type="hidden" name="id_proceso" value="{{ producto.id_proceso }}">
                                             <input type="hidden" name="ram" value="{{ producto.ram }}">
                                             <input type="hidden" name="disco" value="{{ producto.disco }}">
                                             <input type="hidden" name="proveedor_responsable" value="{{ producto.proveedor_responsable }}">
@@ -400,7 +404,7 @@
                                             <input type="hidden" name="periodicidad" value="{{ producto.periodicidad }}">
                                             <input type="hidden" name="tipo_equipo" value="{{ producto.tipo_equipo }}">
                                             <input type="hidden" name="estado_equipo" value="{{ producto.estado_equipo }}">
-                                            <input type="hidden" name="ubicacion_original" value="{{ producto.ubicacion_original }}">
+                                            <input type="hidden" name="id_proceso" value="{{ producto.id_proceso }}">
                                             <input type="hidden" name="ram" value="{{ producto.ram }}">
                                             <input type="hidden" name="disco" value="{{ producto.disco }}">
                                             <input type="hidden" name="proveedor_responsable" value="{{ producto.proveedor_responsable }}">
@@ -418,7 +422,14 @@
                                         </form>
 
                                     </td>
-                                    <td>{{ ubicacionEquiposModal.get(producto.ubicacion_original, "Sin ubicación") }}</td>
+                                    <td>{{ procesoEquiposModal.get(producto.id_proceso, "Sin Proceso") }}</td>
+                                    <td> 
+                                        {% if producto.ubicacion %}
+                                           {{ producto.ubicacion }}
+                                        {% else %}
+                                            <span class="text-muted"> Sin Ubicación </span>
+                                        {% endif %}
+                                    </td>
                                     <td class="software-cell"
                                         title="{{ producto.software_instalado }}"
                                         data-full="{{ producto.software_instalado|e }}"
@@ -434,7 +445,6 @@
                                             {{ producto.software_instalado[:50] }}
                                             {% if producto.software_instalado|length > 50 %}...{% endif %}
                                         </span>
-
                                     </td>
                                     <td class="semaforo" data-vencimiento="{{ producto.vencimiento_mantenimiento }}"></td>
 
@@ -791,7 +801,7 @@ document.getElementById("guardarSeleccionados").addEventListener("click", async 
     const data = {
         proveedorId: document.getElementById("selectProveedor").value,
         personaId: document.getElementById("selectPersona").value,
-        ubicacionId: document.getElementById("selectUbicacion").value,
+        procesoId: document.getElementById("selectProceso").value,
         observacionesId: document.getElementById("selectObservaciones").value,
         nuevaFecha: document.getElementById("nuevaFecha").value,
         nuevaPeriodicidad: document.getElementById("nuevaPeriodicidad").value,
