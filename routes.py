@@ -79,10 +79,12 @@ def login():
             if logged_user.password:
                 login_user(logged_user)
 
-                if logged_user.rol in ['salud', 'gastronomia', 'lacma', 'arquitectura', 'tecnologia']:
-                    return redirect(url_for('main.index_modulo', modulo=logged_user.rol))
+                # Redirección directa por rol
+                if logged_user.rol == 'tecnologia':
+                    return redirect(url_for('main.indexTecnologia'))
+                
                 elif logged_user.rol == 'admin':
-                    return redirect(url_for('home'))
+                    return redirect(url_for('main.home'))
                 else:
                     flash('Rol no autorizado')
                     return redirect(url_for('login'))
@@ -1559,32 +1561,32 @@ def ELIMINAR_CONTACTO(id):
 # --------------------------- FINALIZA MODULO DE TECNOLOGIA-----------------------------
 
 # ---------------------------FUNCIÓN PARA EL MANEJO DE LOS MODULOS-----------------------------
-@bp.route('/<modulo>')
-@login_required
-def index_modulo(modulo):
-    modulos_validos = ['salud', 'gastronomia', 'lacma', 'arquitectura']
+# @bp.route('/<modulo>')
+# @login_required
+# def index_modulo(modulo):
+#     modulos_validos = ['salud', 'gastronomia', 'lacma', 'arquitectura']
     
-    if modulo not in modulos_validos:
-        # flash("Modulo no válido", "error")
-        return redirect(url_for('main.home'))  # <-- redirige al home si no existe
+#     if modulo not in modulos_validos:
+#         # flash("Modulo no válido", "error")
+#         return redirect(url_for('main.home'))  # <-- redirige al home si no existe
     
-    cur = db.connection.cursor(MySQLdb.cursors.DictCursor)
+#     cur = db.connection.cursor(MySQLdb.cursors.DictCursor)
 
-    # Traer equipos solo del modulo actual
-    cur.execute("""SELECT i.*, p.enable_prestamos FROM indexssalud i LEFT JOIN prestamos_equiposalud p ON i.cod_articulo = p.cod_articulo AND p.enable_prestamos = 1 WHERE i.enable=1 AND i.de_baja=0 AND i.modulo=%s""", (modulo,))
-    equipos = cur.fetchall()
+#     # Traer equipos solo del modulo actual
+#     cur.execute("""SELECT i.*, p.enable_prestamos FROM indexssalud i LEFT JOIN prestamos_equiposalud p ON i.cod_articulo = p.cod_articulo AND p.enable_prestamos = 1 WHERE i.enable=1 AND i.de_baja=0 AND i.modulo=%s""", (modulo,))
+#     equipos = cur.fetchall()
 
-    # Traer proveedores, estados y procesos
-    cur.execute('SELECT id, nombre_empresa FROM datosproveedorsalud')
-    proveedores = cur.fetchall()
+#     # Traer proveedores, estados y procesos
+#     cur.execute('SELECT id, nombre_empresa FROM datosproveedorsalud')
+#     proveedores = cur.fetchall()
 
-    cur.execute('SELECT id, estado_equipo FROM estados_equipos')
-    estadoEquipos = cur.fetchall()
+#     cur.execute('SELECT id, estado_equipo FROM estados_equipos')
+#     estadoEquipos = cur.fetchall()
 
-    cur.execute('SELECT id, ubicacion_original FROM ubicacion_equipos')
-    ubicacionEquipos = cur.fetchall()
+#     cur.execute('SELECT id, ubicacion_original FROM ubicacion_equipos')
+#     ubicacionEquipos = cur.fetchall()
 
-    return render_template(f'indexSalud.html', indexssalud=equipos, proveedores=proveedores, estadoEquipos=estadoEquipos, ubicacionEquipos=ubicacionEquipos, modulo=modulo)
+#     return render_template(f'indexSalud.html', indexssalud=equipos, proveedores=proveedores, estadoEquipos=estadoEquipos, ubicacionEquipos=ubicacionEquipos, modulo=modulo)
 
     
 # ---------------------------FUNCION PARA CARGAR IMAGEN DEL EQUIPO DESDE LA TABLA indexSalud EN EL CAMPO ACCIONES SUBIR_IMAGEN-----------------------------  
