@@ -697,6 +697,7 @@ def checkbox_programacion_mantenimiento_tecnologia():
         proveedor_id = request.form.get('proveedor_id')
         persona_id = request.form.get('persona_id')
         proceso_id = request.form.get('proceso_id')
+        ubicacion_id = request.form.get('ubicacion_id')
 
         if not seleccionados or not proveedor_id:
             return jsonify({'success': False, 'message': 'Faltan productos seleccionados o proveedor.'})
@@ -734,8 +735,8 @@ def checkbox_programacion_mantenimiento_tecnologia():
                 )
                 cur.execute(
                     """INSERT INTO tecnologia_historial_preventivo 
-                            (cod_articulo, nombre_equipo, id_proceso, fecha_mantenimiento, vencimiento_mantenimiento, periodicidad, id_proveedor_responsable, id_persona_responsable) 
-                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
+                            (cod_articulo, nombre_equipo, id_proceso, fecha_mantenimiento, vencimiento_mantenimiento, periodicidad, id_proveedor_responsable, id_persona_responsable, ubicacion) 
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)""",
                     (
                         cod,
                         nombre_equipo,
@@ -745,6 +746,7 @@ def checkbox_programacion_mantenimiento_tecnologia():
                         periodicidad_m,
                         proveedor_id,
                         persona_id,
+                        ubicacion_id,
 
                     ),
                 )
@@ -759,8 +761,8 @@ def checkbox_programacion_mantenimiento_tecnologia():
                 )
                 cur.execute(
                     """INSERT INTO tecnologia_historial_correctivo 
-                            (cod_articulo, nombre_equipo, id_proceso, fecha_calibracion, vencimiento_calibracion, periodicidad_calibracion, id_proveedor_responsable, id_persona_responsable) 
-                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
+                            (cod_articulo, nombre_equipo, id_proceso, fecha_calibracion, vencimiento_calibracion, periodicidad_calibracion, id_proveedor_responsable, id_persona_responsable, ubicacion) 
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)""",
                     (
                         cod,
                         nombre_equipo,
@@ -770,6 +772,7 @@ def checkbox_programacion_mantenimiento_tecnologia():
                         periodicidad_c,
                         proveedor_id,
                         persona_id,
+                        ubicacion_id,
                     ),
                 )
 
@@ -1034,6 +1037,7 @@ def guardar_historial_tecnologia():
     persona_id = data.get('personaId')
     proceso_id = data.get('procesoId')
     observaciones_id = data.get('observacionesId')
+    ubicacion_id = data.get('ubicacionId')
     nueva_fecha_str = data.get('nuevaFecha')
     correo_externo = data.get('correoExterno')
     registros = data.get('registros', [])
@@ -1078,8 +1082,8 @@ def guardar_historial_tecnologia():
                 # Guardar en historial preventivo
                 cur.execute(
                     """INSERT INTO tecnologia_historial_preventivo 
-                    (cod_articulo, nombre_equipo, id_proceso, fecha_mantenimiento, vencimiento_mantenimiento, periodicidad, id_proveedor_responsable, id_persona_responsable, observaciones)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                    (cod_articulo, nombre_equipo, id_proceso, fecha_mantenimiento, vencimiento_mantenimiento, periodicidad, id_proveedor_responsable, id_persona_responsable, observaciones, ubicacion)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
                     (
                         producto_id,
                         nombre_equipo,
@@ -1090,6 +1094,7 @@ def guardar_historial_tecnologia():
                         proveedor_id,
                         persona_id,
                         observaciones_id,
+                        ubicacion_id,
                     )
                 )
 
@@ -1098,8 +1103,8 @@ def guardar_historial_tecnologia():
 
                 # Actualizar en tecnologia_equipos solo los preventivos
                 cur.execute(
-                    "UPDATE tecnologia_equipos SET fecha_mantenimiento = %s, vencimiento_mantenimiento = %s, periodicidad = %s, proveedor_responsable = %s, id_persona_responsable= %s, id_proceso= %s WHERE cod_articulo = %s",
-                    (nueva_fecha, nuevo_vencimiento, nueva_periodicidad, proveedor_id, persona_id, proceso_id, producto_id)
+                    "UPDATE tecnologia_equipos SET fecha_mantenimiento = %s, vencimiento_mantenimiento = %s, periodicidad = %s, proveedor_responsable = %s, id_persona_responsable= %s, id_proceso= %s, ubicacion= %s WHERE cod_articulo = %s",
+                    (nueva_fecha, nuevo_vencimiento, nueva_periodicidad, proveedor_id, persona_id, proceso_id, ubicacion_id, producto_id)
                 )
             
             # Obtener datos actuales para historial correctivo
@@ -1113,8 +1118,8 @@ def guardar_historial_tecnologia():
                 # Guardar en historial correctivo
                 cur.execute(
                     """INSERT INTO tecnologia_historial_correctivo 
-                    (cod_articulo, nombre_equipo, id_proceso, fecha_calibracion, vencimiento_calibracion, periodicidad_calibracion, id_proveedor_responsable, id_persona_responsable, observaciones)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                    (cod_articulo, nombre_equipo, id_proceso, fecha_calibracion, vencimiento_calibracion, periodicidad_calibracion, id_proveedor_responsable, id_persona_responsable, observaciones, ubicacion)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
                     (
                         producto_id,
                         nombre_equipo,
@@ -1125,6 +1130,7 @@ def guardar_historial_tecnologia():
                         proveedor_id,
                         persona_id,
                         observaciones_id,
+                        ubicacion_id,
                     )
                 )
 
@@ -1133,8 +1139,8 @@ def guardar_historial_tecnologia():
 
                 # Actualizar en tecnologia_equipos tanto los correctivos como los preventivos
                 cur.execute(
-                    "UPDATE tecnologia_equipos SET fecha_calibracion = %s, vencimiento_calibracion = %s, periodicidad_calibracion = %s, fecha_mantenimiento = %s, vencimiento_mantenimiento = %s, periodicidad = %s, proveedor_responsable = %s, id_persona_responsable= %s, id_proceso= %s WHERE cod_articulo = %s",
-                    (nueva_fecha, nuevo_vencimiento, nueva_periodicidad, nueva_fecha, nuevo_vencimiento, nueva_periodicidad, proveedor_id, persona_id, proceso_id, producto_id)
+                    "UPDATE tecnologia_equipos SET fecha_calibracion = %s, vencimiento_calibracion = %s, periodicidad_calibracion = %s, fecha_mantenimiento = %s, vencimiento_mantenimiento = %s, periodicidad = %s, proveedor_responsable = %s, id_persona_responsable= %s, id_proceso= %s, ubicacion= %s WHERE cod_articulo = %s",
+                    (nueva_fecha, nuevo_vencimiento, nueva_periodicidad, nueva_fecha, nuevo_vencimiento, nueva_periodicidad, proveedor_id, persona_id, proceso_id, ubicacion_id, producto_id)
                 )
 
         db.connection.commit()
@@ -1341,7 +1347,7 @@ def HISTORIAL_PREVENTIVO_TECNOLOGIA(cod_articulo):
         cur.execute(
             """
             SELECT id, cod_articulo, nombre_equipo, id_proceso, fecha_mantenimiento, 
-                   vencimiento_mantenimiento, periodicidad, id_proveedor_responsable, id_persona_responsable, observaciones
+                   vencimiento_mantenimiento, periodicidad, id_proveedor_responsable, id_persona_responsable, observaciones, ubicacion
             FROM tecnologia_historial_preventivo 
             WHERE cod_articulo = %s 
             ORDER BY fecha_mantenimiento DESC
@@ -1388,7 +1394,7 @@ def HISTORIAL_CORRECTIVO_TECNOLOGIA(cod_articulo):
         cur.execute(
             """
             SELECT id, cod_articulo, nombre_equipo, id_proceso, fecha_calibracion, 
-                   vencimiento_calibracion, periodicidad_calibracion, id_proveedor_responsable, id_persona_responsable, observaciones
+                   vencimiento_calibracion, periodicidad_calibracion, id_proveedor_responsable, id_persona_responsable, observaciones, ubicacion
             FROM tecnologia_historial_correctivo 
             WHERE cod_articulo = %s 
             ORDER BY fecha_calibracion DESC
@@ -2059,7 +2065,7 @@ def download_template_excel_tecnologia():
         "SELECCIONE UN ESTADO",
         "123456(NÚMERO DE DOCTO DEL LIDER DEL PROCESO SIN PUNTOS)",
         "SELECCIONE PROCESO",
-        "Auditorio",
+        "(AUDITORIO-BODEGA-A115...)",
         "8GB",
         "500GB",
         "LENOVO THINKPAD",

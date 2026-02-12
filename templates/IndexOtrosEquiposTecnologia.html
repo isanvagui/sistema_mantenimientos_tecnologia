@@ -58,6 +58,15 @@
                             </select>
                             </div>
 
+                            <!-- Campo oculto para los equipos seleccionados -->
+                            <input type="hidden" name="seleccionados[]" id="equiposSeleccionados">
+
+                            <!-- Ubicación -->
+                            <div class="col-md-4">
+                            <label for="selectUbicacion" class="form-label">Ubicación</label>
+                            <input type="text" id="selectUbicacion" name="ubicacionId" class="form-control" required>
+                            </div>
+
                             <!-- Observaciones -->
                             <div class="col-md-4">
                             <label for="selectObservaciones" class="form-label">Observaciones</label>
@@ -65,21 +74,26 @@
                             </div>
 
                             <!-- Periodicidad -->
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                             <label for="nuevaPeriodicidad" class="form-label">Periodicidad (meses)</label>
                             <input type="number" id="nuevaPeriodicidad" class="form-control" min="1" required>
                             </div>
 
                             <!-- Fecha -->
-                            <div class="col-md-3">
+                            <div class="col-md-4">
                             <label for="nuevaFecha" class="form-label">Fecha de ejecución</label>
                             <input type="date" id="nuevaFecha" class="form-control" required>
                             </div>
                             
-                            <!-- Fecha -->
+                            <!-- Correo -->
                             <div class="col-md-4">
                             <label for="inputCorreo" class="form-label">Correo de quien recibe:</label>
                             <input type="email" class="form-control" id="inputCorreo" name="correoDestino" required="">
+                            </div>
+
+                            <!-- Contenedor de espacio derecho del modal -->
+                            <div class="col-md-3">
+                        
                             </div>
                         </div>
                         </form>

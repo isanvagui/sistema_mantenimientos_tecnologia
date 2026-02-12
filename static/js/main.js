@@ -15,6 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const personaId = selectPersona.value.trim();
             const observacionesId = document.getElementById("selectObservaciones").value.trim();
             const procesoId = selectProceso.value.trim();
+            const ubicacionId = document.getElementById("selectUbicacion").value.trim();
             const nuevaFecha = document.getElementById("nuevaFecha").value.trim();
             const nuevaPeriodicidad = document.getElementById("nuevaPeriodicidad").value.trim();
             const correoExterno = document.getElementById("inputCorreo").value.trim();
@@ -22,6 +23,8 @@ document.addEventListener("DOMContentLoaded", () => {
             // ⚙️ Validaciones
             const errores = [];
             if (!proveedorId) errores.push("Debe seleccionar un técnico responsable.");
+            if (!ubicacionId) errores.push("Debe ingresar ubicación exacta del equipo.");
+            if (!observacionesId) errores.push("Debe ingresar observaciones.");
             if (!nuevaFecha) errores.push("Debe seleccionar la fecha de ejecución.");
             if (!nuevaPeriodicidad) errores.push("Debe ingresar una nueva periodicidad.");
             if (!correoExterno) errores.push("Debe ingresar un correo para notificación.");
@@ -52,6 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         personaId,
                         observacionesId,
                         procesoId,
+                        ubicacionId,
                         nuevaFecha,
                         nuevaPeriodicidad,
                         correoExterno,
@@ -76,6 +80,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     "selectPersona",
                     "selectObservaciones",
                     "selectProceso",
+                    "selectUbicacion",
                     "nuevaFecha",
                     "nuevaPeriodicidad",
                     "inputCorreo"

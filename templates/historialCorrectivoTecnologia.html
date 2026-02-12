@@ -50,6 +50,7 @@
                                 <th>Código Equipo</th>
                                 <th>Nombre Equipo</th>
                                 <th>Proceso</th>
+                                <th>Ubicación</th>
                                 <th>Tipo</th>
                                 <th>Periodicidad</th>
                                 <!-- <td>Actual</td> -->
@@ -78,6 +79,10 @@
                                         {% else %}
                                             <span class="text-muted">Sin Proceso</span>
                                         {% endif %}
+                                    </td>
+
+                                    <td>
+                                        {{ registro.ubicacion }}
                                     </td>
 
                                     <td>Correctivo</td>
