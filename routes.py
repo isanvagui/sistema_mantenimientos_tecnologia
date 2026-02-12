@@ -1559,35 +1559,6 @@ def ELIMINAR_CONTACTO(id):
     flash('Producto eliminado satisfactoriamente')
     return redirect(url_for('indexTecnologia'))
 # --------------------------- FINALIZA MODULO DE TECNOLOGIA-----------------------------
-
-# ---------------------------FUNCIÓN PARA EL MANEJO DE LOS MODULOS-----------------------------
-# @bp.route('/<modulo>')
-# @login_required
-# def index_modulo(modulo):
-#     modulos_validos = ['salud', 'gastronomia', 'lacma', 'arquitectura']
-    
-#     if modulo not in modulos_validos:
-#         # flash("Modulo no válido", "error")
-#         return redirect(url_for('main.home'))  # <-- redirige al home si no existe
-    
-#     cur = db.connection.cursor(MySQLdb.cursors.DictCursor)
-
-#     # Traer equipos solo del modulo actual
-#     cur.execute("""SELECT i.*, p.enable_prestamos FROM indexssalud i LEFT JOIN prestamos_equiposalud p ON i.cod_articulo = p.cod_articulo AND p.enable_prestamos = 1 WHERE i.enable=1 AND i.de_baja=0 AND i.modulo=%s""", (modulo,))
-#     equipos = cur.fetchall()
-
-#     # Traer proveedores, estados y procesos
-#     cur.execute('SELECT id, nombre_empresa FROM datosproveedorsalud')
-#     proveedores = cur.fetchall()
-
-#     cur.execute('SELECT id, estado_equipo FROM estados_equipos')
-#     estadoEquipos = cur.fetchall()
-
-#     cur.execute('SELECT id, ubicacion_original FROM ubicacion_equipos')
-#     ubicacionEquipos = cur.fetchall()
-
-#     return render_template(f'indexSalud.html', indexssalud=equipos, proveedores=proveedores, estadoEquipos=estadoEquipos, ubicacionEquipos=ubicacionEquipos, modulo=modulo)
-
     
 # ---------------------------FUNCION PARA CARGAR IMAGEN DEL EQUIPO DESDE LA TABLA indexSalud EN EL CAMPO ACCIONES SUBIR_IMAGEN-----------------------------  
 @bp.route('/subir_imagen/<int:id_producto>', methods=['POST'])
