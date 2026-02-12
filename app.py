@@ -7,7 +7,7 @@ from extensions import db, csrf, login_manager
 from routes import bp
 
 app = Flask(__name__, static_url_path='/mantenimientos-tecnologia/static')
-app.config.from_object(config['development'])
+app.config.from_object(config['production'])
 app.register_blueprint(bp, url_prefix='/mantenimientos-tecnologia')
 
 # Donde configuro mi clave
