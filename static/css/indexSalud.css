@@ -225,22 +225,37 @@ table.dataTable {
 }
 
 /* Esta porcion de codgigo es para el boton de previous, next que hace parte del campo filtro o buscar */
-.dataTables_wrapper .dataTables_paginate .paginate_button {
-    box-sizing: border-box;
-    display: inline-block;
-    min-width: 1.5em;
-    padding: .5em 1em;
-    margin-left: -12px;
-    text-align: center;
-    text-decoration: none !important;
-    cursor: pointer;
-    color: #333 !important;
-    border: 1px solid transparent;
-    border-radius: 2px;
+/* FIX PAGINACIÓN DATATABLES (HORIZONTAL) */
+.dataTables_wrapper .dataTables_paginate {
+    width: 45%;
+    display: flex;
+    justify-content: flex-end;  /* derecha */
+    align-items: center;
+    gap: 6px;
 }
 
-/* para los botones dentro de la tabla indexSalud */
+.dataTables_wrapper .dataTables_paginate span {
+    display: flex;
+    flex-direction: row;
+    gap: 6px;
+    align-items: center;
+}
 
+/* Cada botón */
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    display: inline-flex;
+    justify-content: right;
+    align-items: center;
+
+    margin: 50;
+    padding: 6px 12px;
+
+    border-radius: 4px;
+    min-width: 35px;
+}
+/* ==============FINALIZA PAGINACIÓN DATATABLES (HORIZONTAL)================= */
+
+/* para los botones dentro de la tabla indexSalud */
 .btn-tabla {
     background-color: rgba(20, 56, 64, 1); /* Color de fondo */
     color: white; /* Color del texto, ajustable */

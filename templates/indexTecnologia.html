@@ -161,6 +161,22 @@
                     </div>
                 </form>
             </div>
+            <!-- New form for inserting .CSV -->
+            <!-- <div class="card-equipos-masivos" id="formContaincsv" style="display: none;">
+                <form  action="{{ url_for('main.updateDate_csv') }}" method="POST" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <input type="file" name="file" accept=".csv" class="custom-file-input" required>
+                    </div> -->
+                    <!------ linea de token es necesaria ya que el sistema lo solicita-->
+                    <!-- <input type="hidden" name="csrf_token" value="{{csrf_token() }}" /> -->
+                    <!---------------------- es solo esta linea----------------------->
+                    <!-- <div class="form-group">
+                        <center>
+                            <button type="submit" class="btn-indexSalud">Ingresar equipos</button>
+                        </center>
+                    </div>
+                </form>
+            </div> -->
             <!-- Modal Para Actualización de Fechas y Guardado de Historial-->
             <div class="modal fade" id="modalGuardar" tabindex="-1" aria-labelledby="modalGuardarLabel" aria-hidden="true">
                 <div class="modal-dialog modal-lg">
@@ -603,8 +619,23 @@ function pintarSemaforos() {
 document.addEventListener("DOMContentLoaded", function () {
     // Inicializar DataTable
     const tabla = $("#tabla").DataTable({
-        "language": {
-            "url": "https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json"
+
+        // PAGINACIÓN Y RENDIMIENTO
+        pageLength: 100,
+        lengthMenu: [[25, 50, 100, 200, 500], [25, 50, 100, 200, 500]],
+        responsive: true,
+        autoWidth: false,
+        deferRender: true, // mejora rendimiento en tablas grandes
+
+        // POSICIÓN DE CONTROLES (CAMPO PARA BUSCAR Y PAGINACIÓN) DAR POSICIONAMIENTO
+        dom:
+            "<'row mb-0'<'col-md-6'l><'col-md-6 text-end'f>>" +  // arriba
+            "rt" +
+            "<'row mt-0'<'col-md-6'i><'col-md-6 text-end'p>>",   // abajo (paginación derecha)
+
+        // IDIOMA ESPAÑOL
+        language: {
+            url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json",
         }
     });
 
@@ -776,7 +807,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 </script>
 
-<!-- Scripts para insertar equipos masivos .CSV -->
+<!-- Scripts para insertar equipos masivos .EXCEL -->
 <script>
     document.getElementById('toggleForm').addEventListener('click', function () {
         var formContain = document.getElementById('formContain');
@@ -791,6 +822,22 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 </script>
+
+<!-- Scripts para insertar equipos masivos .CSV -->
+<!-- <script>
+    document.getElementById('toggleFormcsv').addEventListener('click', function () {
+        var formContaincsv = document.getElementById('formContaincsv');
+        var toggleBtn = document.getElementById('toggleFormcsv');
+
+        if (formContaincsv.style.display === 'none' || formContaincsv.style.display === '') {
+            formContaincsv.style.display = 'block';
+            toggleBtn.textContent = ' Ocultar .csv';
+        } else {
+            formContaincsv.style.display = 'none';
+            toggleBtn.textContent = ' Cargar Equipos Masivos .csv';
+        }
+    });
+</script> -->
 
 <!-- Scripts para actualizar fechas masivamente  -->
 <script>

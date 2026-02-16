@@ -688,6 +688,199 @@ def insert_excel_tecnologia():
 
     return redirect(url_for('main.indexTecnologia'))
 # ---------------------------FINALIZA INSERT MASIVO CSV DE SALUD-----------------------------
+
+# # ---------------------------INICIA ACTUALIZACIÓN MASIVA DE FECHAS DE MANTENIMIENTO-----------------------------
+# @bp.route('/updateDate_csv', methods=['POST'])
+# @login_required
+# def updateDate_csv():
+
+#     file = request.files.get('file')
+
+#     if not file:
+#         flash('No seleccionó ningún archivo', 'error')
+#         return redirect(url_for('main.indexTecnologia'))
+
+#     try:
+#         file = TextIOWrapper(file, encoding='latin-1')
+#         csv_reader = csv.reader(file)
+#         headers = next(csv_reader, None)
+
+#         if not headers or len(headers) < 11:
+#             flash("Archivo inválido o columnas incompletas.", "error")
+#             return redirect(url_for('main.indexTecnologia'))
+
+#         cur = db.connection.cursor()
+
+#         # ===============================
+#         # MAPS (UNA SOLA VEZ)
+#         # ===============================
+
+#         cur.execute("SELECT id, proceso FROM tecnologia_procesos")
+#         proceso_map = {str(p[1]).strip().lower(): p[0] for p in cur.fetchall()}
+
+#         cur.execute("SELECT id, documento_identidad FROM tecnologia_persona_responsable")
+#         persona_map = {str(p[1]).strip().lower(): p[0] for p in cur.fetchall()}
+
+#         cur.execute("SELECT id, cedula FROM tecnologia_tecnico_responsable")
+#         tecnico_map = {str(p[1]).strip().lower(): p[0] for p in cur.fetchall()}
+
+#         actualizados = 0
+#         errores = 0
+
+#         for i, row in enumerate(csv_reader, start=2):
+
+#             try:
+#                 cod_articulo = int(row[0])
+#                 nombre_equipo = row[1]
+
+#                 # ==========================
+#                 # PROCESO
+#                 # ==========================
+#                 proceso_texto = str(row[2]).strip().lower()
+#                 id_proceso = proceso_map.get(proceso_texto)
+
+#                 if not id_proceso:
+#                     errores += 1
+#                     continue
+
+#                 ubicacion = row[3]
+#                 tipo = str(row[4]).strip().lower()
+
+#                 periodicidad = int(row[5]) if row[5] else None
+#                 fecha_mantenimiento = datetime.strptime(row[6], '%Y/%m/%d').date()
+#                 vencimiento_mantenimiento = datetime.strptime(row[7], '%Y/%m/%d').date()
+
+#                 # ==========================
+#                 # TECNICO
+#                 # ==========================
+#                 tecnico_texto = str(row[8]).strip().lower()
+#                 id_proveedor_responsable = tecnico_map.get(tecnico_texto)
+
+#                 # ==========================
+#                 # PERSONA
+#                 # ==========================
+#                 persona_texto = str(row[9]).strip().lower()
+#                 persona_id = persona_map.get(persona_texto)
+
+#                 if not persona_id:
+#                     errores += 1
+#                     continue
+
+#                 observaciones = row[10]
+
+#                 # =============================
+#                 # VALIDAR EQUIPO
+#                 # =============================
+#                 cur.execute("""
+#                     SELECT estado_equipo, fecha_mantenimiento, vencimiento_mantenimiento
+#                     FROM tecnologia_equipos
+#                     WHERE cod_articulo = %s
+#                 """, (cod_articulo,))
+
+#                 producto = cur.fetchone()
+
+#                 if not producto:
+#                     errores += 1
+#                     continue
+
+#                 estado_equipo, fecha_actual, vencimiento_actual = producto
+
+#                 if estado_equipo == "DE BAJA":
+#                     continue
+
+#                 # =============================
+#                 # INSERT HISTORIAL SOLO SI PREVENTIVO
+#                 # =============================
+
+#                 if tipo == "preventivo":
+
+#                     cur.execute("""
+#                         INSERT INTO tecnologia_historial_preventivo
+#                         (cod_articulo, nombre_equipo, id_proceso, ubicacion,
+#                          fecha_mantenimiento, vencimiento_mantenimiento,
+#                          periodicidad, id_proveedor_responsable,
+#                          id_persona_responsable, observaciones)
+#                         VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+#                     """, (
+#                         cod_articulo,
+#                         nombre_equipo,
+#                         id_proceso,
+#                         ubicacion,
+#                         fecha_mantenimiento,
+#                         vencimiento_mantenimiento,
+#                         periodicidad,
+#                         id_proveedor_responsable,
+#                         persona_id,
+#                         observaciones
+#                     ))
+
+#                 # =============================
+#                 # CALCULAR COLOR
+#                 # =============================
+
+#                 hoy = datetime.now().date()
+
+#                 if hoy > vencimiento_mantenimiento:
+#                     color = 'purple'
+#                 elif vencimiento_mantenimiento <= hoy + timedelta(days=30):
+#                     color = 'red'
+#                 elif vencimiento_mantenimiento <= hoy + timedelta(days=90):
+#                     color = 'yellow'
+#                 else:
+#                     color = 'green'
+
+#                 # =============================
+#                 # UPDATE PRINCIPAL
+#                 # =============================
+
+#                 cur.execute("""
+#                     UPDATE tecnologia_equipos
+#                     SET nombre_equipo = %s,
+#                         id_proceso = %s,
+#                         periodicidad = %s,
+#                         fecha_mantenimiento = %s,
+#                         vencimiento_mantenimiento = %s,
+#                         proveedor_responsable = %s,
+#                         id_persona_responsable = %s,
+#                         color = %s,
+#                         ubicacion = %s
+#                     WHERE cod_articulo = %s
+#                 """, (
+#                     nombre_equipo,
+#                     id_proceso,
+#                     periodicidad,
+#                     fecha_mantenimiento,
+#                     vencimiento_mantenimiento,
+#                     id_proveedor_responsable,
+#                     persona_id,
+#                     color,
+#                     ubicacion,
+#                     cod_articulo
+#                 ))
+
+#                 actualizados += 1
+
+#             except Exception:
+#                 errores += 1
+#                 continue
+
+#         db.connection.commit()
+#         cur.close()
+
+#         flash(f"{actualizados} equipos actualizados correctamente.", "success")
+
+#         if errores:
+#             flash(f"{errores} filas presentaron errores.", "warning")
+
+#         return redirect(url_for('main.indexTecnologia'))
+
+#     except Exception as e:
+#         db.connection.rollback()
+#         flash(f"Error general: {str(e)}", "error")
+#         return redirect(url_for('main.indexTecnologia'))
+
+
+# ---------------------------FINALIZA ACTUALIZACIÓN MASIVA DE FECHAS CSV DE SALUD-----------------------------
     
 # ================================CHECKBOX PROGRAMACIÓN MANTENIMIENTO TECNOLOGIA===============================
 @bp.route('/checkbox_programacionMantenimientoTecnologia', methods=['POST'])
@@ -825,7 +1018,7 @@ def get_datos_persona(id):
 def allowed_pdf(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_PDF
     
-# ACTUALIZA EL ESTADO DEL EQUIPO DESDE EL DESPLEGABLE QUE SE ENCUENTRA EN LA MISMA TABLA INDEXSALUD
+# ACTUALIZA EL ESTADO DEL EQUIPO DESDE EL DESPLEGABLE QUE SE ENCUENTRA EN LA MISMA TABLA
 @bp.route('/update_estadoEquipoTecnologia', methods=['POST'])
 @login_required
 def update_estado_equipo_tecnologia():
@@ -1566,7 +1759,7 @@ def ELIMINAR_CONTACTO(id):
     return redirect(url_for('indexTecnologia'))
 # --------------------------- FINALIZA MODULO DE TECNOLOGIA-----------------------------
     
-# ---------------------------FUNCION PARA CARGAR IMAGEN DEL EQUIPO DESDE LA TABLA indexSalud EN EL CAMPO ACCIONES SUBIR_IMAGEN-----------------------------  
+# ---------------------------FUNCION PARA CARGAR IMAGEN DEL EQUIPO DESDE LA TABLA tecnologia_equipos EN EL CAMPO ACCIONES SUBIR_IMAGEN-----------------------------  
 @bp.route('/subir_imagen/<int:id_producto>', methods=['POST'])
 def subir_imagen(id_producto):
     if 'imagen_producto' not in request.files:
@@ -1612,189 +1805,6 @@ def ver_pdf_baja(filename):
         filename,
         as_attachment=False
     )
-# ---------------------------INICIA INSERT MASIVO DE EQUIPOS CSV DE SALUD-----------------------------
-# @app.route('/insert_csv', methods=['POST'])
-# def insert_csv(modulo):
-#     if request.method == 'POST':
-#         file = request.files['file']
-#         if not file:
-#             flash('No seleccionó ningún archivo')
-#             return redirect(url_for('index_modulo', modulo=modulo))
-
-#         file = TextIOWrapper(file, encoding='latin-1')
-#         csv_reader = csv.reader(file)
-#         next(csv_reader)  # Saltar encabezado
-
-#         cur = db.connection.cursor()
-#         fotos_folder = os.path.join(os.path.dirname(__file__), 'static', 'fotos')
-
-#         codigos_duplicados = []
-#         datos_validos = []
-
-#         for row in csv_reader:
-#             cod_articulo = row[0]
-
-#             try:
-#                 cod_articulo = int(cod_articulo)
-#             except ValueError:
-#                 flash(f'Código inválido: {cod_articulo}', 'error')
-#                 continue  # Salta esta fila
-
-#             cur.execute("SELECT cod_articulo FROM indexssalud WHERE cod_articulo = %s", (cod_articulo,))
-#             codigo_indexsalud = cur.fetchone()
-
-#             cur.execute("SELECT cod_articulo FROM equipossalud_debaja WHERE cod_articulo = %s", (cod_articulo,))
-#             codigo_debaja = cur.fetchone()
-
-#             if codigo_indexsalud or codigo_debaja:
-#                 codigos_duplicados.append(str(cod_articulo))
-#                 continue  # Salta esta fila duplicada
-
-#             # Verifica que la imagen exista
-#             imagen = row[14]
-#             imagen_path = os.path.join(fotos_folder, imagen)
-#             if not os.path.isfile(imagen_path):
-#                 flash(f'Imagen no encontrada: {imagen}', 'error')
-#                 continue  # Salta esta fila
-
-#             # Validación básica de Mantenimiento Actual
-#             if not row[7]:
-#                 flash(f'Equipo con código {cod_articulo} no tiene Mantenimiento Actual.', 'error')
-#                 continue
-            
-#             # Validación básica de Vencimiento Mantenimiento
-#             if not row[8]:
-#                 flash(f'Equipo con código {cod_articulo} no tiene Vencimiento Mantenimiento.', 'error')
-#                 continue
-
-#             # Validación básica de Periodicidad Calibración
-#             if not row[9]:
-#                 flash(f'Equipo con código {cod_articulo} si no tiene periodicidad de calibracion, ingresa 0.', 'error')
-#                 continue
-
-#             # Preparar fila válida para insertar luego
-#             datos_validos.append(row)
-
-#             # Se construye diccionario de proveedores, por nombre de empresa: id
-#             cur.execute("SELECT id, nombre_empresa FROM datosproveedorsalud")
-#             proveedores = cur.fetchall()
-#             proveedor_map = {p[1].strip().lower(): p[0] for p in proveedores}
-
-#         # Insertar solo los datos válidos
-#         for row in datos_validos:
-#             cod_articulo = int(row[0])
-#             nombre_equipo = row[1]
-#             ubicacion_original = row[2]
-#             estado_equipo = row[3]
-#             fecha_ingreso = row[4]
-#             garantia = row[5]
-#             periodicidad = int(row[6])
-#             fecha_mantenimiento = row[7]
-#             vencimiento_mantenimiento = row[8]
-#             periodicidad_calibracion = int(row[9])
-#             fecha_calibracion = row[10] or None
-#             vencimiento_calibracion = row[11] or None
-#             criticos = row[12]
-#             # proveedor_responsable = row[13]
-#             nombre_proveedor = row[13].strip().lower()
-#             proveedor_responsable = proveedor_map.get(nombre_proveedor)
-
-#             if not proveedor_responsable:
-#                 flash(f"Proveedor '{row[13]}' no encontrado en la base de datos.", 'error')
-#                 continue
-            
-#             imagen = row[14]
-#             especificaciones_instalacion = row[15]
-#             cuidados_basicos = row[16]
-#             marca_equipo_salud = row[17]
-#             modelo_equipo_salud = row[18]
-#             serial_equipo_salud = row[19]
-
-#             ruta_imagen_db = f'fotos/{secure_filename(imagen)}'
-#             checkbox_mantenimiento = 'Inactivo'
-#             checkbox_calibracion = 'Inactivo'
-#             fecha_de_baja = date.today() if estado_equipo == "DE BAJA" else None
-#             color = 'verde'
-
-#             if estado_equipo == 'DE BAJA':
-#                 # Insertar en la tabla equipossalud_debaja
-#                 cur.execute("""INSERT INTO equipossalud_debaja (cod_articulo, nombre_equipo, fecha_mantenimiento, vencimiento_mantenimiento, fecha_calibracion, vencimiento_calibracion, fecha_ingreso, 
-#                                                                 periodicidad, estado_equipo, ubicacion_original, garantia, criticos, proveedor_responsable, imagen, especificaciones_instalacion, cuidados_basicos, 
-#                                                                 periodicidad_calibracion, marca_equipo_salud, modelo_equipo_salud, serial_equipo_salud, color, checkbox_mantenimiento, checkbox_calibracion, fecha_de_baja) VALUES 
-#                                                                 (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
-#                     (
-#                         cod_articulo,
-#                         nombre_equipo,
-#                         fecha_mantenimiento,
-#                         vencimiento_mantenimiento,
-#                         fecha_calibracion,
-#                         vencimiento_calibracion,
-#                         fecha_ingreso,
-#                         periodicidad,
-#                         estado_equipo,
-#                         ubicacion_original,
-#                         garantia,
-#                         criticos,
-#                         proveedor_responsable,
-#                         ruta_imagen_db,
-#                         especificaciones_instalacion, 
-#                         cuidados_basicos,
-#                         periodicidad_calibracion,
-#                         marca_equipo_salud,
-#                         modelo_equipo_salud,
-#                         serial_equipo_salud,
-#                         color,
-#                         checkbox_mantenimiento,
-#                         checkbox_calibracion,
-#                         fecha_de_baja,
-#                     ),
-#                 )
-#             else:
-
-#                 # Insertar en la tabla indexssalud
-#                 cur.execute("""INSERT INTO indexssalud (cod_articulo, nombre_equipo, fecha_mantenimiento, vencimiento_mantenimiento, fecha_calibracion, vencimiento_calibracion, fecha_ingreso, 
-#                                                         periodicidad, estado_equipo, ubicacion_original, garantia, criticos, proveedor_responsable, imagen, especificaciones_instalacion, cuidados_basicos, 
-#                                                         periodicidad_calibracion, marca_equipo_salud, modelo_equipo_salud, serial_equipo_salud, color, checkbox_mantenimiento, checkbox_calibracion, fecha_de_baja) VALUES 
-#                                                         (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
-#                     (
-#                         cod_articulo,
-#                         nombre_equipo,
-#                         fecha_mantenimiento,
-#                         vencimiento_mantenimiento,
-#                         fecha_calibracion,  
-#                         vencimiento_calibracion,  
-#                         fecha_ingreso,
-#                         periodicidad,
-#                         estado_equipo,
-#                         ubicacion_original,
-#                         garantia,
-#                         criticos,
-#                         proveedor_responsable,
-#                         ruta_imagen_db,
-#                         especificaciones_instalacion, 
-#                         cuidados_basicos,
-#                         periodicidad_calibracion,
-#                         marca_equipo_salud,
-#                         modelo_equipo_salud,
-#                         serial_equipo_salud,
-#                         color,
-#                         checkbox_mantenimiento,
-#                         checkbox_calibracion,
-#                         fecha_de_baja,
-#                     ),
-#                 )
-
-#         db.connection.commit()
-
-#         if codigos_duplicados:
-#             flash(f'Los siguientes códigos ya existen y no fueron insertados: {", ".join(codigos_duplicados)}', 'error')
-#         if datos_validos:
-#             flash(f'{len(datos_validos)} equipos importados exitosamente.', 'success')
-#         else:
-#             flash('No se importó ningún equipo.', 'error')
-
-#         return redirect(url_for('index_modulo', modulo='modulo'))
-# ---------------------------FINALIZA INSERT MASIVO CSV SALUD-----------------------------
 
 # ---------------------------INICIA EXPORTACIÓN DE CSV DE EQUIPOS TECNOLOGIA-----------------------------
 @bp.route('/exportCsvTecnologia')
