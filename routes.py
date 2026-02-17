@@ -690,196 +690,194 @@ def insert_excel_tecnologia():
 # ---------------------------FINALIZA INSERT MASIVO CSV DE SALUD-----------------------------
 
 # # ---------------------------INICIA ACTUALIZACIÓN MASIVA DE FECHAS DE MANTENIMIENTO-----------------------------
-# @bp.route('/updateDate_csv', methods=['POST'])
-# @login_required
-# def updateDate_csv():
+@bp.route('/updateDate_csv', methods=['POST'])
+@login_required
+def updateDate_csv():
 
-#     file = request.files.get('file')
+    file = request.files.get('file')
 
-#     if not file:
-#         flash('No seleccionó ningún archivo', 'error')
-#         return redirect(url_for('main.indexTecnologia'))
+    if not file:
+        flash('No seleccionó ningún archivo', 'error')
+        return redirect(url_for('main.indexTecnologia'))
 
-#     try:
-#         file = TextIOWrapper(file, encoding='latin-1')
-#         csv_reader = csv.reader(file)
-#         headers = next(csv_reader, None)
+    try:
+        file = TextIOWrapper(file, encoding='latin-1')
+        csv_reader = csv.reader(file)
+        headers = next(csv_reader, None)
 
-#         if not headers or len(headers) < 11:
-#             flash("Archivo inválido o columnas incompletas.", "error")
-#             return redirect(url_for('main.indexTecnologia'))
+        if not headers or len(headers) < 11:
+            flash("Archivo inválido o columnas incompletas.", "error")
+            return redirect(url_for('main.indexTecnologia'))
 
-#         cur = db.connection.cursor()
+        cur = db.connection.cursor()
 
-#         # ===============================
-#         # MAPS (UNA SOLA VEZ)
-#         # ===============================
+        # ===============================
+        # MAPS (UNA SOLA VEZ)
+        # ===============================
 
-#         cur.execute("SELECT id, proceso FROM tecnologia_procesos")
-#         proceso_map = {str(p[1]).strip().lower(): p[0] for p in cur.fetchall()}
+        cur.execute("SELECT id, proceso FROM tecnologia_procesos")
+        proceso_map = {str(p[1]).strip().lower(): p[0] for p in cur.fetchall()}
 
-#         cur.execute("SELECT id, documento_identidad FROM tecnologia_persona_responsable")
-#         persona_map = {str(p[1]).strip().lower(): p[0] for p in cur.fetchall()}
+        cur.execute("SELECT id, documento_identidad FROM tecnologia_persona_responsable")
+        persona_map = {str(p[1]).strip().lower(): p[0] for p in cur.fetchall()}
 
-#         cur.execute("SELECT id, cedula FROM tecnologia_tecnico_responsable")
-#         tecnico_map = {str(p[1]).strip().lower(): p[0] for p in cur.fetchall()}
+        cur.execute("SELECT id, cedula FROM tecnologia_tecnico_responsable")
+        tecnico_map = {str(p[1]).strip().lower(): p[0] for p in cur.fetchall()}
 
-#         actualizados = 0
-#         errores = 0
+        actualizados = 0
+        errores = 0
 
-#         for i, row in enumerate(csv_reader, start=2):
+        for i, row in enumerate(csv_reader, start=2):
 
-#             try:
-#                 cod_articulo = int(row[0])
-#                 nombre_equipo = row[1]
+            try:
+                cod_articulo = int(row[0])
+                nombre_equipo = row[1]
 
-#                 # ==========================
-#                 # PROCESO
-#                 # ==========================
-#                 proceso_texto = str(row[2]).strip().lower()
-#                 id_proceso = proceso_map.get(proceso_texto)
+                # ==========================
+                # PROCESO
+                # ==========================
+                proceso_texto = str(row[2]).strip().lower()
+                id_proceso = proceso_map.get(proceso_texto)
 
-#                 if not id_proceso:
-#                     errores += 1
-#                     continue
+                if not id_proceso:
+                    errores += 1
+                    continue
 
-#                 ubicacion = row[3]
-#                 tipo = str(row[4]).strip().lower()
+                ubicacion = row[3]
+                tipo = str(row[4]).strip().lower()
 
-#                 periodicidad = int(row[5]) if row[5] else None
-#                 fecha_mantenimiento = datetime.strptime(row[6], '%Y/%m/%d').date()
-#                 vencimiento_mantenimiento = datetime.strptime(row[7], '%Y/%m/%d').date()
+                periodicidad = int(row[5]) if row[5] else None
+                fecha_mantenimiento = datetime.strptime(row[6], '%Y/%m/%d').date()
+                vencimiento_mantenimiento = datetime.strptime(row[7], '%Y/%m/%d').date()
 
-#                 # ==========================
-#                 # TECNICO
-#                 # ==========================
-#                 tecnico_texto = str(row[8]).strip().lower()
-#                 id_proveedor_responsable = tecnico_map.get(tecnico_texto)
+                # ==========================
+                # TECNICO
+                # ==========================
+                tecnico_texto = str(row[8]).strip().lower()
+                id_proveedor_responsable = tecnico_map.get(tecnico_texto)
 
-#                 # ==========================
-#                 # PERSONA
-#                 # ==========================
-#                 persona_texto = str(row[9]).strip().lower()
-#                 persona_id = persona_map.get(persona_texto)
+                # ==========================
+                # PERSONA
+                # ==========================
+                persona_texto = str(row[9]).strip().lower()
+                persona_id = persona_map.get(persona_texto)
 
-#                 if not persona_id:
-#                     errores += 1
-#                     continue
+                if not persona_id:
+                    errores += 1
+                    continue
 
-#                 observaciones = row[10]
+                observaciones = row[10]
 
-#                 # =============================
-#                 # VALIDAR EQUIPO
-#                 # =============================
-#                 cur.execute("""
-#                     SELECT estado_equipo, fecha_mantenimiento, vencimiento_mantenimiento
-#                     FROM tecnologia_equipos
-#                     WHERE cod_articulo = %s
-#                 """, (cod_articulo,))
+                # =============================
+                # VALIDAR EQUIPO
+                # =============================
+                cur.execute("""
+                    SELECT estado_equipo, fecha_mantenimiento, vencimiento_mantenimiento
+                    FROM tecnologia_equipos
+                    WHERE cod_articulo = %s
+                """, (cod_articulo,))
 
-#                 producto = cur.fetchone()
+                producto = cur.fetchone()
 
-#                 if not producto:
-#                     errores += 1
-#                     continue
+                if not producto:
+                    errores += 1
+                    continue
 
-#                 estado_equipo, fecha_actual, vencimiento_actual = producto
+                estado_equipo, fecha_actual, vencimiento_actual = producto
 
-#                 if estado_equipo == "DE BAJA":
-#                     continue
+                if estado_equipo == "DE BAJA":
+                    continue
 
-#                 # =============================
-#                 # INSERT HISTORIAL SOLO SI PREVENTIVO
-#                 # =============================
+                # =============================
+                # INSERT HISTORIAL SOLO SI PREVENTIVO
+                # =============================
 
-#                 if tipo == "preventivo":
+                if tipo == "preventivo":
 
-#                     cur.execute("""
-#                         INSERT INTO tecnologia_historial_preventivo
-#                         (cod_articulo, nombre_equipo, id_proceso, ubicacion,
-#                          fecha_mantenimiento, vencimiento_mantenimiento,
-#                          periodicidad, id_proveedor_responsable,
-#                          id_persona_responsable, observaciones)
-#                         VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-#                     """, (
-#                         cod_articulo,
-#                         nombre_equipo,
-#                         id_proceso,
-#                         ubicacion,
-#                         fecha_mantenimiento,
-#                         vencimiento_mantenimiento,
-#                         periodicidad,
-#                         id_proveedor_responsable,
-#                         persona_id,
-#                         observaciones
-#                     ))
+                    cur.execute("""
+                        INSERT INTO tecnologia_historial_preventivo
+                        (cod_articulo, nombre_equipo, id_proceso, ubicacion,
+                         fecha_mantenimiento, vencimiento_mantenimiento,
+                         periodicidad, id_proveedor_responsable,
+                         id_persona_responsable, observaciones)
+                        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                    """, (
+                        cod_articulo,
+                        nombre_equipo,
+                        id_proceso,
+                        ubicacion,
+                        fecha_mantenimiento,
+                        vencimiento_mantenimiento,
+                        periodicidad,
+                        id_proveedor_responsable,
+                        persona_id,
+                        observaciones
+                    ))
 
-#                 # =============================
-#                 # CALCULAR COLOR
-#                 # =============================
+                # =============================
+                # CALCULAR COLOR
+                # =============================
 
-#                 hoy = datetime.now().date()
+                hoy = datetime.now().date()
 
-#                 if hoy > vencimiento_mantenimiento:
-#                     color = 'purple'
-#                 elif vencimiento_mantenimiento <= hoy + timedelta(days=30):
-#                     color = 'red'
-#                 elif vencimiento_mantenimiento <= hoy + timedelta(days=90):
-#                     color = 'yellow'
-#                 else:
-#                     color = 'green'
+                if hoy > vencimiento_mantenimiento:
+                    color = 'purple'
+                elif vencimiento_mantenimiento <= hoy + timedelta(days=30):
+                    color = 'red'
+                elif vencimiento_mantenimiento <= hoy + timedelta(days=90):
+                    color = 'yellow'
+                else:
+                    color = 'green'
 
-#                 # =============================
-#                 # UPDATE PRINCIPAL
-#                 # =============================
+                # =============================
+                # UPDATE PRINCIPAL
+                # =============================
 
-#                 cur.execute("""
-#                     UPDATE tecnologia_equipos
-#                     SET nombre_equipo = %s,
-#                         id_proceso = %s,
-#                         periodicidad = %s,
-#                         fecha_mantenimiento = %s,
-#                         vencimiento_mantenimiento = %s,
-#                         proveedor_responsable = %s,
-#                         id_persona_responsable = %s,
-#                         color = %s,
-#                         ubicacion = %s
-#                     WHERE cod_articulo = %s
-#                 """, (
-#                     nombre_equipo,
-#                     id_proceso,
-#                     periodicidad,
-#                     fecha_mantenimiento,
-#                     vencimiento_mantenimiento,
-#                     id_proveedor_responsable,
-#                     persona_id,
-#                     color,
-#                     ubicacion,
-#                     cod_articulo
-#                 ))
+                cur.execute("""
+                    UPDATE tecnologia_equipos
+                    SET nombre_equipo = %s,
+                        id_proceso = %s,
+                        periodicidad = %s,
+                        fecha_mantenimiento = %s,
+                        vencimiento_mantenimiento = %s,
+                        proveedor_responsable = %s,
+                        id_persona_responsable = %s,
+                        color = %s,
+                        ubicacion = %s
+                    WHERE cod_articulo = %s
+                """, (
+                    nombre_equipo,
+                    id_proceso,
+                    periodicidad,
+                    fecha_mantenimiento,
+                    vencimiento_mantenimiento,
+                    id_proveedor_responsable,
+                    persona_id,
+                    color,
+                    ubicacion,
+                    cod_articulo
+                ))
 
-#                 actualizados += 1
+                actualizados += 1
 
-#             except Exception:
-#                 errores += 1
-#                 continue
+            except Exception:
+                errores += 1
+                continue
 
-#         db.connection.commit()
-#         cur.close()
+        db.connection.commit()
+        cur.close()
 
-#         flash(f"{actualizados} equipos actualizados correctamente.", "success")
+        flash(f"{actualizados} equipos actualizados correctamente.", "success")
 
-#         if errores:
-#             flash(f"{errores} filas presentaron errores.", "warning")
+        if errores:
+            flash(f"{errores} filas presentaron errores.", "warning")
 
-#         return redirect(url_for('main.indexTecnologia'))
+        return redirect(url_for('main.indexTecnologia'))
 
-#     except Exception as e:
-#         db.connection.rollback()
-#         flash(f"Error general: {str(e)}", "error")
-#         return redirect(url_for('main.indexTecnologia'))
-
-
+    except Exception as e:
+        db.connection.rollback()
+        flash(f"Error general: {str(e)}", "error")
+        return redirect(url_for('main.indexTecnologia'))
 # ---------------------------FINALIZA ACTUALIZACIÓN MASIVA DE FECHAS CSV DE SALUD-----------------------------
     
 # ================================CHECKBOX PROGRAMACIÓN MANTENIMIENTO TECNOLOGIA===============================
