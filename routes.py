@@ -1448,38 +1448,38 @@ def ACTUALIZAR_EQUIPO_TECNOLOGIA(id):
         ram = request.form ['ram'] or None
         disco = request.form ['disco'] or None
         
-        # PARA EL CHECKBOX Y SEMAFORO DE MANTENIMIENTO
-        fecha_mantenimiento = request.form ['fecha_mantenimiento'] or None
-        vencimiento_mantenimiento = request.form ['vencimiento_mantenimiento'] or None
+        # # PARA EL CHECKBOX Y SEMAFORO DE MANTENIMIENTO
+        # fecha_mantenimiento = request.form ['fecha_mantenimiento'] or None
+        # vencimiento_mantenimiento = request.form ['vencimiento_mantenimiento'] or None
         
-        # Obtener hora actual del equipo
-        hora_actual = datetime.now().date()
-        color = 'verde'
+        # # Obtener hora actual del equipo
+        # hora_actual = datetime.now().date()
+        # color = 'verde'
 
-        if  vencimiento_mantenimiento:
-            vencimiento_mant = datetime.strptime(vencimiento_mantenimiento, '%Y-%m-%d').date()
-            if vencimiento_mant < hora_actual:
-                color = 'purple'  # Falta menos de un mes
-            elif vencimiento_mant <= hora_actual + timedelta(days=30):
-                color = 'red'  # Falta menos de tres meses
-            elif vencimiento_mant <= hora_actual + timedelta(days=90):
-                color = 'yellow'  # Falta menos de tres meses
+        # if  vencimiento_mantenimiento:
+        #     vencimiento_mant = datetime.strptime(vencimiento_mantenimiento, '%Y-%m-%d').date()
+        #     if vencimiento_mant < hora_actual:
+        #         color = 'purple'  # Falta menos de un mes
+        #     elif vencimiento_mant <= hora_actual + timedelta(days=30):
+        #         color = 'red'  # Falta menos de tres meses
+        #     elif vencimiento_mant <= hora_actual + timedelta(days=90):
+        #         color = 'yellow'  # Falta menos de tres meses
         
-        fecha_calibracion = request.form ['fecha_calibracion'] or None
-        vencimiento_calibracion = request.form ['vencimiento_calibracion'] or None
+        # fecha_calibracion = request.form ['fecha_calibracion'] or None
+        # vencimiento_calibracion = request.form ['vencimiento_calibracion'] or None
 
         fecha_ingreso = request.form ['fecha_ingreso'] or None
-        periodicidad_raw = request.form ['periodicidad']
-        if periodicidad_raw in (None, "", "None"):
-            periodicidad = None
-        else:
-            periodicidad = int(periodicidad_raw)
+        # periodicidad_raw = request.form ['periodicidad']
+        # if periodicidad_raw in (None, "", "None"):
+        #     periodicidad = None
+        # else:
+        #     periodicidad = int(periodicidad_raw)
 
-        periodicidad_calibracion_raw = request.form ['periodicidad_calibracion']
-        if periodicidad_calibracion_raw in (None, "", "None"):
-            periodicidad_calibracion = None
-        else:
-            periodicidad_calibracion = int(periodicidad_calibracion_raw)
+        # periodicidad_calibracion_raw = request.form ['periodicidad_calibracion']
+        # if periodicidad_calibracion_raw in (None, "", "None"):
+        #     periodicidad_calibracion = None
+        # else:
+        #     periodicidad_calibracion = int(periodicidad_calibracion_raw)
 
         # # Ubicacion Original
         # cur.execute('SELECT id, ubicacion_original FROM tecnologia_ubicacion_equipos')
@@ -1491,8 +1491,7 @@ def ACTUALIZAR_EQUIPO_TECNOLOGIA(id):
         # Obtener las fechas actuales antes de actualizar
         cur.execute(
             """ UPDATE tecnologia_equipos SET  nombre_equipo = %s, id_proceso = %s, ubicacion = %s, software_instalado = %s, marca_equipo_tecnologia = %s, modelo_equipo_tecnologia = %s, 
-                serial_equipo_tecnologia =%s, ram =%s, disco =%s, fecha_mantenimiento = %s, vencimiento_mantenimiento = %s, fecha_calibracion = %s, vencimiento_calibracion = %s,
-                fecha_ingreso = %s, periodicidad = %s, color = %s, periodicidad_calibracion = %s WHERE id = %s""",
+                serial_equipo_tecnologia =%s, ram =%s, disco =%s, fecha_ingreso = %s WHERE id = %s""",
             (
                 # cod_articulo,
                 nombre_equipo,
@@ -1504,14 +1503,14 @@ def ACTUALIZAR_EQUIPO_TECNOLOGIA(id):
                 serial_equipo_tecnologia,
                 ram,
                 disco,
-                fecha_mantenimiento,
-                vencimiento_mantenimiento,
-                fecha_calibracion,
-                vencimiento_calibracion,
+                # fecha_mantenimiento,
+                # vencimiento_mantenimiento,
+                # fecha_calibracion,
+                # vencimiento_calibracion,
                 fecha_ingreso,
-                periodicidad,
-                color,
-                periodicidad_calibracion,
+                # periodicidad,
+                # color,
+                # periodicidad_calibracion,
                 id,
             ),
         )
