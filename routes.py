@@ -729,8 +729,17 @@ def updateDate_csv():
 
         for i, row in enumerate(csv_reader, start=2):
 
+            # Asegura mínimo de columnas por fila
+            if not row or len(row) < 11:
+                errores += 1
+                flash(f"Fila {i}: columnas incompletas. (cod: N/D)", "error")
+                continue
+
+            # Guardar el código crudo para reportar incluso si int() falla
+            raw_cod = str(row[0]).strip() if row[0] is not None else "N/D"
+
             try:
-                cod_articulo = int(row[0])
+                cod_articulo = int(raw_cod)
                 nombre_equipo = row[1]
 
                 # ==========================
@@ -741,20 +750,44 @@ def updateDate_csv():
 
                 if not id_proceso:
                     errores += 1
+                    flash(f"Fila {i} (Equipo {cod_articulo}): Proceso '{row[2]}' no existe.", "error")
                     continue
 
                 ubicacion = row[3]
                 tipo = str(row[4]).strip().lower()
 
-                periodicidad = int(row[5]) if row[5] else None
-                fecha_mantenimiento = datetime.strptime(row[6], '%Y/%m/%d').date()
-                vencimiento_mantenimiento = datetime.strptime(row[7], '%Y/%m/%d').date()
+                # ==========================
+                # FECHAS / PERIODICIDAD
+                # ==========================
+                try:
+                    periodicidad = int(row[5]) if str(row[5]).strip() else None
+                except ValueError:
+                    errores += 1
+                    flash(f"Fila {i} (Equipo {cod_articulo}): Periodicidad inválida '{row[5]}'.", "error")
+                    continue
+
+                try:
+                    fecha_mantenimiento = datetime.strptime(str(row[6]).strip(), '%Y-%m-%d').date()
+                    vencimiento_mantenimiento = datetime.strptime(str(row[7]).strip(), '%Y-%m-%d').date()
+                except Exception:
+                    errores += 1
+                    flash(
+                        f"Fila {i} (Equipo {cod_articulo}): Fechas inválidas. "
+                        f"fecha='{row[6]}' vencimiento='{row[7]}' (formato esperado YYYY-MM-DD).",
+                        "error"
+                    )
+                    continue
 
                 # ==========================
                 # TECNICO
                 # ==========================
                 tecnico_texto = str(row[8]).strip().lower()
                 id_proveedor_responsable = tecnico_map.get(tecnico_texto)
+
+                if not id_proveedor_responsable:
+                    errores += 1
+                    flash(f"Fila {i} (Equipo {cod_articulo}): Técnico '{row[8]}' no existe.", "error")
+                    continue
 
                 # ==========================
                 # PERSONA
@@ -764,6 +797,7 @@ def updateDate_csv():
 
                 if not persona_id:
                     errores += 1
+                    flash(f"Fila {i} (Equipo {cod_articulo}): Persona '{row[9]}' no existe.", "error")
                     continue
 
                 observaciones = row[10]
@@ -781,11 +815,13 @@ def updateDate_csv():
 
                 if not producto:
                     errores += 1
+                    flash(f"Fila {i} (Equipo {cod_articulo}): No existe en tecnologia_equipos.", "error")
                     continue
 
                 estado_equipo, fecha_actual, vencimiento_actual = producto
 
                 if estado_equipo == "DE BAJA":
+                    flash(f"Fila {i} (Equipo {cod_articulo}): Está DE BAJA. No se actualiza.", "warning")
                     continue
 
                 # =============================
@@ -860,8 +896,9 @@ def updateDate_csv():
 
                 actualizados += 1
 
-            except Exception:
+            except Exception as e:
                 errores += 1
+                flash(f"Fila {i} (Equipo {raw_cod}): Error -> {str(e)}", "error")
                 continue
 
         db.connection.commit()
@@ -870,7 +907,7 @@ def updateDate_csv():
         flash(f"{actualizados} equipos actualizados correctamente.", "success")
 
         if errores:
-            flash(f"{errores} filas presentaron errores.", "warning")
+            flash(f"{errores} filas presentaron errores (ver mensajes anteriores).", "warning")
 
         return redirect(url_for('main.indexTecnologia'))
 
