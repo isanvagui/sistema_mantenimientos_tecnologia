@@ -34,15 +34,15 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- Configuración del gráfico FECHAS DE CALIBRACIÓN -->
+<!-- Configuración del gráfico FECHAS DE CORRECTIVOS -->
 <script>
   var ctx = document.getElementById('vencimientoCalibracion').getContext('2d');
   var vencimientoCalibracion  = new Chart(ctx, {
       type: 'pie',
         data: {
-            labels: ['Sin fecha', 'Vencidas (<0 días)', 'Próximas a vencer (<=30 días)', 'Más de 30 días'],
+            // labels: ['Sin fecha', 'Vencidas (<0 días)', 'Próximas a vencer (<=30 días)', 'Más de 30 días'],
             datasets: [{
-                label: 'Estadísticas de Matenimiento Preventivo',
+                label: 'Estadísticas de Matenimientos Correctivos',
                 data: [{{ sin_fecha_mantenimiento_correctivo }}, {{ vencidas_mantenimiento_correctivo }}, {{ entre_0_y_30_dias_a_vencer_correctivo }}, {{ mas_30_dias_a_vencer_correctivo }}],  // Aquí Flask inserta los valores
                 backgroundColor: [
                     'rgba(169, 169, 169, 0.7)', // Gris → sin fecha
@@ -74,7 +74,7 @@
     });
 </script>
 
-<!-- Configuración del gráfico FECHAS DE MANTENIMIENTO -->
+<!-- Configuración del gráfico FECHAS DE PREVENTIVOS -->
 <script>
     var ctx = document.getElementById('vencimientoMantenimiento').getContext('2d');
     var vencimientoMantenimiento = new Chart(ctx, {
@@ -82,7 +82,7 @@
         data: {
             labels: ['Sin fecha', 'Vencidas (<0 días)', 'Próximas a vencer (<=30 días)', 'Más de 30 días'],
             datasets: [{
-                label: 'Estadísticas de Matenimiento Preventivo',
+                label: 'Estadísticas de Matenimientos Preventivos',
                 data: [{{ sin_fecha_mantenimiento_preventivo }}, {{ vencidas_mantenimiento_preventivo }}, {{ entre_0_y_30_dias_a_vencer_preventivo }}, {{ mas_30_dias_a_vencer_preventivo }}],  // Aquí Flask inserta los valores
                 backgroundColor: [
                     'rgba(169, 169, 169, 0.7)', // Gris → sin fecha

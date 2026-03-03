@@ -109,7 +109,7 @@ def home():
     # Obtener la fecha actual
     fecha_actual = datetime.now().date()
 
-    # Consultar la cantidad de equipos según el vencimiento del mantenimiento
+    # Consultar la cantidad de equipos según el mantenimiento preventivo
     cur.execute("""
         SELECT 
             SUM(vencimiento_mantenimiento IS NULL) AS sin_fecha,
@@ -129,7 +129,7 @@ def home():
     print(resultados_preventivos)
    
 
-    # Consultar la cantidad de equipos según el vencimiento de la calibración
+    # Consultar la cantidad de equipos según el mantenimiento correctivo
     cur.execute("""
         SELECT 
             SUM(vencimiento_calibracion IS NULL) AS sin_fecha,
@@ -139,7 +139,7 @@ def home():
         FROM tecnologia_equipos WHERE enable = 1 and de_baja = 0
     """, (fecha_actual, fecha_actual, fecha_actual))
 
-    # Obtener los resultados del vencimiento de calibración
+    # Obtener los resultados del mantenimiento correctivo
     resultados_correctivos = cur.fetchone()
     sin_fecha_mantenimiento_correctivo = resultados_correctivos[0] or 0
     vencidas_mantenimiento_correctivo = resultados_correctivos[1] or 0
