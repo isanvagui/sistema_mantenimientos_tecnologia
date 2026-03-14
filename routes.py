@@ -105,56 +105,72 @@ def logout():
 @login_required
 def home():
     cur = db.connection.cursor()
-
-    # Obtener la fecha actual
     fecha_actual = datetime.now().date()
 
-    # Consultar la cantidad de equipos según el mantenimiento preventivo
+    # ==============================
+    # ESTADISTICAS PREVENTIVOS
+    # ==============================
+
     cur.execute("""
         SELECT 
             SUM(vencimiento_mantenimiento IS NULL) AS sin_fecha,
-            SUM(DATEDIFF(vencimiento_mantenimiento, %s) < 0) AS vencidas,
-            SUM(DATEDIFF(vencimiento_mantenimiento, %s) BETWEEN 0 AND 30) AS proximas,
-            SUM(DATEDIFF(vencimiento_mantenimiento, %s) > 30) AS mas_30_dias
-        FROM tecnologia_equipos WHERE enable = 1 and de_baja = 0
-    """, (fecha_actual, fecha_actual, fecha_actual))
+            SUM(vencimiento_mantenimiento < %s) AS vencidas,
+            SUM(vencimiento_mantenimiento BETWEEN %s AND DATE_ADD(%s, INTERVAL 30 DAY)) AS proximas,
+            SUM(vencimiento_mantenimiento > DATE_ADD(%s, INTERVAL 30 DAY)) AS mas_30
+        FROM tecnologia_equipos
+        WHERE enable = 1 AND de_baja = 0
+    """, (fecha_actual, fecha_actual, fecha_actual, fecha_actual))
 
-    # Obtener los resultados
     resultados_preventivos = cur.fetchone()
     sin_fecha_mantenimiento_preventivo = resultados_preventivos[0] or 0
     vencidas_mantenimiento_preventivo = resultados_preventivos[1] or 0
     entre_0_y_30_dias_a_vencer_preventivo = resultados_preventivos[2] or 0
     mas_30_dias_a_vencer_preventivo = resultados_preventivos[3] or 0
 
-    print(resultados_preventivos)
-   
+# ==============================
+# CORRECTIVOS ULTIMOS 12 MESES
+# ==============================
 
-    # Consultar la cantidad de equipos según el mantenimiento correctivo
     cur.execute("""
-        SELECT 
-            SUM(vencimiento_calibracion IS NULL) AS sin_fecha,
-            SUM(DATEDIFF(vencimiento_calibracion, %s) < 0) AS vencidas,
-            SUM(DATEDIFF(vencimiento_calibracion, %s) BETWEEN 0 AND 30) AS proximas,
-            SUM(DATEDIFF(vencimiento_calibracion, %s) > 30) AS mas_30_dias
-        FROM tecnologia_equipos WHERE enable = 1 and de_baja = 0
-    """, (fecha_actual, fecha_actual, fecha_actual))
+    SELECT 
+        DATE_FORMAT(fecha_calibracion,'%Y-%m') AS periodo,
+        COUNT(*) AS total
+    FROM tecnologia_equipos
+    WHERE fecha_calibracion >= DATE_SUB(CURDATE(), INTERVAL 11 MONTH)
+    AND enable = 1
+    AND de_baja = 0
+    GROUP BY periodo
+    ORDER BY periodo
+    """)
 
-    # Obtener los resultados del mantenimiento correctivo
-    resultados_correctivos = cur.fetchone()
-    sin_fecha_mantenimiento_correctivo = resultados_correctivos[0] or 0
-    vencidas_mantenimiento_correctivo = resultados_correctivos[1] or 0
-    entre_0_y_30_dias_a_vencer_correctivo = resultados_correctivos[2] or 0
-    mas_30_dias_a_vencer_correctivo = resultados_correctivos[3] or 0
+    rows = cur.fetchall()
 
-    return render_template('home.html', sin_fecha_mantenimiento_preventivo=sin_fecha_mantenimiento_preventivo, 
-                                        vencidas_mantenimiento_preventivo=vencidas_mantenimiento_preventivo, 
-                                        entre_0_y_30_dias_a_vencer_preventivo=entre_0_y_30_dias_a_vencer_preventivo, 
-                                        mas_30_dias_a_vencer_preventivo=mas_30_dias_a_vencer_preventivo,
-                                        
-                                        sin_fecha_mantenimiento_correctivo=sin_fecha_mantenimiento_correctivo, 
-                                        vencidas_mantenimiento_correctivo=vencidas_mantenimiento_correctivo, 
-                                        entre_0_y_30_dias_a_vencer_correctivo=entre_0_y_30_dias_a_vencer_correctivo, 
-                                        mas_30_dias_a_vencer_correctivo=mas_30_dias_a_vencer_correctivo)
+    data_db = {r[0]: r[1] for r in rows}
+
+    labels = []
+    data = []
+
+    today = datetime.today()
+
+    for i in range(11, -1, -1):
+
+        mes = today - relativedelta(months=i)
+        key = mes.strftime("%Y-%m")
+        labels.append(mes.strftime("%b %y"))
+        data.append(data_db.get(key, 0))
+
+    return render_template(
+        'home.html',
+        # Preventivos
+        sin_fecha_mantenimiento_preventivo=sin_fecha_mantenimiento_preventivo,
+        vencidas_mantenimiento_preventivo=vencidas_mantenimiento_preventivo,
+        entre_0_y_30_dias_a_vencer_preventivo=entre_0_y_30_dias_a_vencer_preventivo,
+        mas_30_dias_a_vencer_preventivo=mas_30_dias_a_vencer_preventivo,
+
+        # Correctivos
+        correctivos_labels=labels,
+        correctivos_data=data
+    )
 
 
 # ---------------------------INICIA MODULO DE TECNOLOGIA-----------------------------
@@ -205,56 +221,53 @@ def AGREGAR_NUEVA_PERSONA_TECNOLOGIA():
 
 @bp.route('/add_datosPersonaTecnologia', methods=['POST'])
 def EDITAR_DATOS_PERSONA_TECNOLOGIA():
-    if request.method == 'POST':
-        documento_identidad = request.form.get('documento_identidad')
-        nombre_contratista = request.form.get('nombre_contratista')
-        correo = request.form.get('correo')
-        area = request.form.get('area')
 
-        # ✅ Valida que todos los campos estén diligenciados
-        if not documento_identidad or not nombre_contratista or not correo or not area:
-            flash('Todos los campos son obligatorios', 'danger')
-            return redirect(url_for('main.AGREGAR_NUEVA_PERSONA_TECNOLOGIA'))
+    documento_identidad = request.form.get('documento_identidad', '').strip()
+    nombre_contratista = request.form.get('nombre_contratista', '').strip().upper()
+    correo = request.form.get('correo', '').strip().lower()
+    area = request.form.get('area', '').strip().upper()
 
+    # Validación
+    if not documento_identidad or not nombre_contratista or not correo or not area:
+        flash('Todos los campos son obligatorios', 'danger')
+        return redirect(url_for('main.AGREGAR_NUEVA_PERSONA_TECNOLOGIA'))
+
+    try:
         cur = db.connection.cursor()
 
-        # ✅ Verifica si ya existe el documento_identidad antes de insertar
-        cur.execute(
-            "SELECT COUNT(*) FROM tecnologia_persona_responsable WHERE documento_identidad = %s",
-            (documento_identidad,)
-        )
-        existe = cur.fetchone()[0]
-
-        if existe:
-            flash('El documento de identidad ya está registrado', 'warning')
-            return redirect(url_for('main.AGREGAR_NUEVA_PERSONA_TECNOLOGIA'))
-
-        # ✅ Inserta solo si no existe
-        cur.execute(
-            'INSERT INTO tecnologia_persona_responsable (documento_identidad, nombre_contratista, correo, area) '
-            'VALUES (%s, %s, %s, %s)',
+        cur.execute("""
+            INSERT INTO tecnologia_persona_responsable
             (documento_identidad, nombre_contratista, correo, area)
-        )
+            VALUES (%s, %s, %s, %s)
+        """, (documento_identidad, nombre_contratista, correo, area))
+
         db.connection.commit()
 
         flash('Datos agregados satisfactoriamente', 'success')
-        return redirect(url_for('main.AGREGAR_NUEVA_PERSONA_TECNOLOGIA'))
+
+    except Exception as e:
+
+        # Error por duplicado
+        if "Duplicate entry" in str(e):
+            flash('El documento de identidad ya está registrado', 'warning')
+        else:
+            flash('Error al registrar la persona', 'danger')
+
+    return redirect(url_for('main.AGREGAR_NUEVA_PERSONA_TECNOLOGIA'))
+
 # ============================================================================================
 
 @bp.route('/indexTecnologia')
 @login_required
 def indexTecnologia():
     cur = db.connection.cursor(MySQLdb.cursors.DictCursor)
-    # cur = db.connection.cursor()
     cur.execute('SELECT * FROM tecnologia_equipos where enable=1 AND de_baja=0 AND otros_equipos_tecnologia = 0')
-    data = cur.fetchall()
-    # cur.execute('SELECT i.*, p.enable_prestamos FROM tecnologia_equios i LEFT JOIN prestamos_equiposalud p ON i.cod_articulo = p.cod_articulo AND p.enable_prestamos = 1 WHERE i.enable=1 AND i.de_baja=0') #A raiz del enable=1 no se deben eliminar en la DB
-    # data = cur.fetchall()
+    equipos = cur.fetchall()
 
     cur.execute('SELECT id, nombre_tecnico FROM tecnologia_tecnico_responsable')
     proveedores = cur.fetchall()
 
-    cur.execute('SELECT id, documento_identidad, nombre_contratista FROM tecnologia_persona_responsable')
+    cur.execute('SELECT id, documento_identidad, nombre_contratista FROM tecnologia_persona_responsable ORDER BY nombre_contratista ASC')
     personas = cur.fetchall()
 
     cur.execute('SELECT id, tipo_equipo FROM tecnologia_tipo_equipo')
@@ -271,7 +284,7 @@ def indexTecnologia():
     procesoEquiposModal = {p["id"]: p["proceso"] for p in procesoEquipos_data}
     
     # print(procesoEquipos)
-    return render_template('indexTecnologia.html', tecnologia_equipos=data, tipoEquipos=tipoEquipos, proveedores=proveedores, personas=personas, estadoEquipos=estadoEquipos, procesoEquipos=procesoEquipos, procesoEquiposModal=procesoEquiposModal)
+    return render_template('indexTecnologia.html', tecnologia_equipos=equipos, tipoEquipos=tipoEquipos, proveedores=proveedores, personas=personas, estadoEquipos=estadoEquipos, procesoEquipos=procesoEquipos, procesoEquiposModal=procesoEquiposModal)
 
 
 def allowed_image(filename):

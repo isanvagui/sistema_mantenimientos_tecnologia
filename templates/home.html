@@ -11,22 +11,24 @@
   <div class="container-dashboard-home">
     <div class="row no-gutters"> <!-- Agregue 'no-gutters' para eliminar el espacio entre columnas -->
 
-      <!-- Columna para "PRÓXIMOS A VENCER MATENIMINETO" con gráfico de torta -->
-      <div class="col-sm-6">
-        <div class="grafico"
-            style="background-color: #143840; color: white; text-align: center; padding: 20px; box-sizing: border-box; border-radius: 10px;">
-            <h5>ESTADÍSTICAS DE MANTENIMIENTOS PREVENTIVOS</h5>
-            <canvas id="vencimientoMantenimiento" style="max-width: 100%;"></canvas>
-        </div>
-      </div>
+    <!-- Columna para "PRÓXIMOS A VENCER MATENIMINETO" con gráfico de torta -->
+    <div class="col-sm-6">
+    <div class="grafico"
+        style="background-color: #143840; color: white; text-align: center; padding: 50px; box-sizing: border-box; border-radius: 10px;">
+        <h5>ESTADÍSTICAS DE MANTENIMIENTOS PREVENTIVOS</h5>
+        <canvas id="vencimientoMantenimiento" style="max-width: 100%;"></canvas>
+    </div>
+    </div>
 
-      <div class="col-sm-6"> <!-- Columna para "CORRECTIVOS" -->
-        <div class="grafico"
-          style="background-color: #143840; color: white; text-align: center; padding: 20px; box-sizing: border-box; border-radius: 10px;">
-          <h5>ESTADÍSTICAS DE MANTENIMIENTOS CORRECTIVOS</h5>
-          <canvas id="vencimientoCalibracion" style="max-width: 100%;"></canvas>
+    <div class="col-sm-6">
+        <div class="grafico" style="background-color: #143840; color: white; text-align: center; padding: 20px; border-radius: 10px; height: 400px; display: flex; flex-direction: column;">
+            <h5>ESTADÍSTICAS DE MANTENIMIENTOS CORRECTIVOS</h5>
+            <div style="flex-grow: 1; position: relative;">
+                <canvas id="vencimientoCalibracion"></canvas>
+            </div>
         </div>
-      </div>
+    </div>
+
 
     </div>
   </div>
@@ -36,42 +38,51 @@
 
 <!-- Configuración del gráfico FECHAS DE CORRECTIVOS -->
 <script>
-  var ctx = document.getElementById('vencimientoCalibracion').getContext('2d');
-  var vencimientoCalibracion  = new Chart(ctx, {
-      type: 'pie',
-        data: {
-            // labels: ['Sin fecha', 'Vencidas (<0 días)', 'Próximas a vencer (<=30 días)', 'Más de 30 días'],
-            datasets: [{
-                label: 'Estadísticas de Matenimientos Correctivos',
-                data: [{{ sin_fecha_mantenimiento_correctivo }}, {{ vencidas_mantenimiento_correctivo }}, {{ entre_0_y_30_dias_a_vencer_correctivo }}, {{ mas_30_dias_a_vencer_correctivo }}],  // Aquí Flask inserta los valores
-                backgroundColor: [
-                    'rgba(169, 169, 169, 0.7)', // Gris → sin fecha
-                    'rgba(255, 0, 0, 0.7)',     // Rojo → vencidas
-                    'rgba(255, 255, 0, 0.7)',   // Amarillo → por vencer (0 a 30 días)
-                    'rgba(0, 128, 0, 0.7)'      // Verde → más de 30 días
-                ],
-                borderColor: [
-                    'rgba(128, 128, 128, 1)',
-                    'rgba(255, 0, 0, 1)',
-                    'rgba(255, 255, 0, 1)',
-                    'rgba(0, 100, 0, 1)'
-                ],
-                borderWidth: 1
-            }]
+// Obtenemos los datos desde el backend
+const rawData = {{ correctivos_data | tojson }};
+const maxDataValue = Math.max(...rawData, 0);
+
+const ctxCorrectivos = document.getElementById('vencimientoCalibracion').getContext('2d');
+
+new Chart(ctxCorrectivos, {
+    type: 'bar',
+    data: {
+        labels: {{ correctivos_labels | tojson }},
+        datasets: [{
+            label: 'Mantenimientos Correctivos',
+            data: rawData,
+            backgroundColor: 'rgba(255, 255, 0, 0.7)',
+            borderColor: 'rgba(255, 255, 0, 0.7)',
+            borderWidth: 1,
+            borderRadius: 5
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false, // Permite que el chart llene el alto del contenedor padre
+        plugins: {
+            legend: { labels: { color: '#ffffff' } }
         },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    display: true,
-                    position: 'bottom',
-                    labels: {
-                      color: '#ffffff'   // TEXTO BLANCO del label
-                  }
-                }
+        scales: {
+            y: {
+                beginAtZero: true,
+                // Grace añade un 10% de espacio extra arriba para que la barra no pegue al borde
+                grace: '10%', 
+                ticks: { 
+                    color: '#ffffff', 
+                    precision: 0 
+                },
+                grid: { color: 'rgba(255,255,255,0.1)' }
+            },
+            x: {
+                ticks: { color: '#ffffff' },
+                grid: { display: false }
             }
         }
-    });
+    }
+});
+
+
 </script>
 
 <!-- Configuración del gráfico FECHAS DE PREVENTIVOS -->
@@ -80,7 +91,7 @@
     var vencimientoMantenimiento = new Chart(ctx, {
         type: 'pie',
         data: {
-            labels: ['Sin fecha', 'Vencidas (<0 días)', 'Próximas a vencer (<=30 días)', 'Más de 30 días'],
+            labels: ['Sin fecha', 'Vencidos', 'Entre 0 a 30 días', 'Más de 30 días'],
             datasets: [{
                 label: 'Estadísticas de Matenimientos Preventivos',
                 data: [{{ sin_fecha_mantenimiento_preventivo }}, {{ vencidas_mantenimiento_preventivo }}, {{ entre_0_y_30_dias_a_vencer_preventivo }}, {{ mas_30_dias_a_vencer_preventivo }}],  // Aquí Flask inserta los valores
