@@ -64,7 +64,7 @@ def send_email_with_logo(subject, body_html, recipients):
 
 def send_mantenimiento_notification_html(
     lista_equipos, nombre_tecnico, id_proceso,
-    persona_responsable, email_recibe, fecha_mantenimiento, tipo_mantenimiento
+    persona_responsable, email_recibe, fecha_mantenimiento, vencimiento_mantenimiento, tipo_mantenimiento
 ):
     """
     Construye el HTML del préstamo y lo envía a ambas partes.
@@ -87,7 +87,8 @@ def send_mantenimiento_notification_html(
         <li><b>👤 Tecnico responsable:</b> {nombre_tecnico}</li>
         <li><b>📍 Proceso:</b> {id_proceso}</li>
         <li><b>👤 Responsable del equipo:</b> {persona_responsable}</li>
-        <li><b>🗓 Fecha de mantenimiento:</b> {fecha_mantenimiento}</li>
+        <li><b>🗓 Ejecución de mantenimiento:</b> {fecha_mantenimiento}</li>
+        <li><b>🗓 Vencimiento de mantenimiento:</b> {vencimiento_mantenimiento}</li>
     </ul>
     <p>Prevención instalación de software no autorizado dan cumplimiento a la Resolución No. 
     163 del 18 de mayo de 2023 por medio de la cual se actualizan los lineamientos de Tecnología e informática 

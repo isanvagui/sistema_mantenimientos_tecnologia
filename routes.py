@@ -1387,14 +1387,18 @@ def guardar_historial_tecnologia():
         db.connection.commit()
 
         if lista_equipos:
+            # Si es correctivo (fecha_calibracion), enviamos "N/A"
+            vencimiento_correctivo_correo = "N/A" if tipo == "fecha_calibracion" else nuevo_vencimiento.strftime("%Y-%m-%d")
+
             send_mantenimiento_notification_html(
                 lista_equipos,
                 nombre_tecnico=nombre_tecnico,  # puedes obtenerlo con una consulta
-                id_proceso=proceso_nombre,  # idem, desde proceso_id
+                id_proceso=proceso_nombre,  # desde proceso_id
                 persona_responsable=persona_nombre,   # desde persona_id
                 # observaciones=observaciones_id,
                 email_recibe=correo_externo,
                 fecha_mantenimiento=nueva_fecha.strftime("%Y-%m-%d"),
+                vencimiento_mantenimiento=vencimiento_correctivo_correo,
                 tipo_mantenimiento=tipo
             )
         return jsonify({'success': True, 'message': 'Fechas y registros actualizados correctamente.'})
