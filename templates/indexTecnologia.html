@@ -856,7 +856,6 @@ document.getElementById("guardarSeleccionados").addEventListener("click", async 
     `;
 
     // Armar registros seleccionados
-    const registros = window.equiposSeleccionadosGlobal || [];
 
     const data = {
         proveedorId: document.getElementById("selectProveedor").value,
@@ -869,7 +868,7 @@ document.getElementById("guardarSeleccionados").addEventListener("click", async 
         correoExterno: document.getElementById("inputCorreo").value,
         registros: registros
     };
-
+    console.log("REGISTROS ENVIADOS:", registros);
     try {
         let response = await fetch("/mantenimientos-tecnologia/guardar_historialTecnologia", {
             method: "POST",
