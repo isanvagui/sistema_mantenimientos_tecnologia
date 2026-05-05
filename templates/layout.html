@@ -20,6 +20,9 @@
     <div class="toggle-btn" id="toggle-btn" onclick="toggleSidebar()">
       <i class="fas fa-bars"></i>
     </div>
+    
+    <!-- Usuario logueado -->
+    <a class="sidebar-user" data-icon="👨‍💻"> {{ current_user.fullname }}</a>
 
     <!-- Siempre visibles -->
     <a href="{{ url_for('main.home') }}" data-icon="🏠"> Inicio</a>
